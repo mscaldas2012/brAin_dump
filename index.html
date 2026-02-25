@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Three Engineering Disciplines of AI — From Prompts to Intent</title>
+<title>brAin dump</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -61,53 +61,43 @@
     pointer-events: none;
   }
 
-  .hero-kicker {
+  .hero-eyebrow {
     font-family: 'DM Sans', sans-serif;
     font-weight: 500;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 2rem;
+    color: rgba(250,248,244,0.35);
+    margin-bottom: 1.75rem;
     opacity: 0;
     animation: fadeUp 0.8s 0.2s forwards;
   }
 
-  .hero h1 {
+  .hero-title {
     font-family: 'Playfair Display', serif;
     font-weight: 900;
-    font-size: clamp(2.4rem, 6vw, 4.5rem);
-    line-height: 1.1;
-    max-width: 14em;
-    margin-bottom: 1.5rem;
+    font-size: clamp(3.5rem, 10vw, 7rem);
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.75rem;
     opacity: 0;
     animation: fadeUp 0.8s 0.4s forwards;
   }
 
-  .hero h1 em {
-    font-style: italic;
+  .hero-title .accent {
     color: var(--accent);
+    font-style: italic;
   }
 
   .hero-subtitle {
     font-family: 'Source Serif 4', serif;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     font-weight: 300;
-    max-width: 32em;
-    line-height: 1.6;
-    color: rgba(250,248,244,0.7);
+    max-width: 30em;
+    line-height: 1.65;
+    color: rgba(250,248,244,0.6);
     opacity: 0;
     animation: fadeUp 0.8s 0.6s forwards;
-  }
-
-  .hero-meta {
-    margin-top: 3rem;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
-    letter-spacing: 0.05em;
-    color: rgba(250,248,244,0.4);
-    opacity: 0;
-    animation: fadeUp 0.8s 0.8s forwards;
   }
 
   .hero-scroll {
@@ -145,265 +135,108 @@
     padding: 5rem 2rem 6rem;
   }
 
-  .content p {
-    margin-bottom: 1.4rem;
+  /* ─── YEAR GROUP ─── */
+  .year-group {
+    margin-bottom: 4rem;
   }
 
-  .content p.lede {
-    font-size: 1.2rem;
-    font-weight: 300;
+  .year-label {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
     color: var(--muted);
-    line-height: 1.75;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--ink);
     margin-bottom: 2.5rem;
   }
 
-  /* ─── SECTION HEADINGS ─── */
-  .section-label {
+  /* ─── MONTH GROUP ─── */
+  .month-group {
+    margin-bottom: 2.5rem;
+  }
+
+  .month-label {
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--muted);
+    margin-bottom: 1.25rem;
+  }
+
+  /* ─── POST CARD ─── */
+  .post-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    border-left: 4px solid var(--accent);
+    padding: 1.75rem 1.75rem 1.75rem 2rem;
+    background: white;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+  }
+
+  .post-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.06), 0 16px 40px rgba(0,0,0,0.07);
+  }
+
+  .post-card:hover .post-arrow {
+    transform: translateX(4px);
+    opacity: 1;
+  }
+
+  .post-date {
     font-family: 'DM Sans', sans-serif;
     font-weight: 500;
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    color: var(--accent);
     margin-bottom: 0.5rem;
   }
 
-  .section-label.tier-1 { color: var(--tier1); }
-  .section-label.tier-2 { color: var(--tier2); }
-  .section-label.tier-3 { color: var(--tier3); }
-
-  h2 {
+  .post-title {
     font-family: 'Playfair Display', serif;
     font-weight: 700;
-    font-size: 2rem;
-    line-height: 1.2;
-    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    line-height: 1.25;
+    margin-bottom: 0.65rem;
+    padding-right: 2rem;
   }
 
-  h3 {
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
-    font-size: 1.35rem;
-    line-height: 1.3;
-    margin-top: 2.5rem;
-    margin-bottom: 1rem;
+  .post-desc {
+    font-family: 'Source Serif 4', serif;
+    font-size: 0.9rem;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.6;
+    padding-right: 2rem;
   }
 
-  /* ─── DIVIDERS ─── */
+  .post-arrow {
+    position: absolute;
+    right: 1.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+    color: var(--rule);
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    opacity: 0.6;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* ─── DIVIDER ─── */
   .divider {
     border: none;
     height: 1px;
     background: var(--rule);
     margin: 4rem 0;
   }
-
-  .divider.heavy {
-    height: 3px;
-    background: linear-gradient(to right, var(--tier1), var(--tier2), var(--tier3));
-    margin: 5rem 0;
-  }
-
-  /* ─── TIER CARDS ─── */
-  .tier-card {
-    border-left: 4px solid;
-    padding: 2rem 2rem 2rem 2.5rem;
-    margin: 2.5rem 0;
-    background: white;
-    border-radius: 0 8px 8px 0;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03);
-  }
-
-  .tier-card.t1 { border-color: var(--tier1); }
-  .tier-card.t2 { border-color: var(--tier2); }
-  .tier-card.t3 { border-color: var(--tier3); }
-
-  .tier-card h4 {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.75rem;
-  }
-
-  .tier-card.t1 h4 { color: var(--tier1); }
-  .tier-card.t2 h4 { color: var(--tier2); }
-  .tier-card.t3 h4 { color: var(--tier3); }
-
-  .tier-card p {
-    font-size: 0.95rem;
-    margin-bottom: 0.8rem;
-    line-height: 1.65;
-  }
-
-  .tier-card p:last-child { margin-bottom: 0; }
-
-  /* ─── DIAGRAM ─── */
-  .diagram-wrap {
-    margin: 3.5rem -1rem;
-    padding: 3rem 2rem;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 12px 32px rgba(0,0,0,0.04);
-    overflow-x: auto;
-  }
-
-  .diagram-title {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-
-  .scale-diagram {
-    display: flex;
-    align-items: stretch;
-    gap: 0;
-    min-width: 600px;
-  }
-
-  .scale-tier {
-    flex: 1;
-    text-align: center;
-    padding: 1.5rem 1rem;
-    position: relative;
-  }
-
-  .scale-tier:not(:last-child)::after {
-    content: '→';
-    position: absolute;
-    right: -0.6em;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.2rem;
-    color: var(--rule);
-    z-index: 1;
-  }
-
-  .scale-icon {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .scale-name {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: 0.82rem;
-    letter-spacing: 0.05em;
-    margin-bottom: 0.35rem;
-  }
-
-  .scale-tier:nth-child(1) .scale-name { color: var(--tier1); }
-  .scale-tier:nth-child(2) .scale-name { color: var(--tier2); }
-  .scale-tier:nth-child(3) .scale-name { color: var(--tier3); }
-
-  .scale-scope {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.72rem;
-    color: var(--muted);
-    line-height: 1.5;
-  }
-
-  .scale-tier:nth-child(1) { background: rgba(196,85,58,0.04); border-radius: 8px 0 0 8px; }
-  .scale-tier:nth-child(2) { background: rgba(42,107,90,0.04); }
-  .scale-tier:nth-child(3) { background: rgba(61,90,128,0.04); border-radius: 0 8px 8px 0; }
-
-  /* ─── INLINE CODE & QUOTES ─── */
-  code {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.85em;
-    background: rgba(0,0,0,0.05);
-    padding: 0.1em 0.4em;
-    border-radius: 3px;
-  }
-
-  blockquote {
-    border-left: 3px solid var(--accent);
-    padding: 0.2rem 0 0.2rem 1.5rem;
-    margin: 2rem 0;
-    font-style: italic;
-    color: var(--muted);
-    font-size: 1.05rem;
-  }
-
-  /* ─── TABLE ─── */
-  .comparison-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 2.5rem 0;
-    font-size: 0.88rem;
-  }
-
-  .comparison-table th {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: 0.72rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    text-align: left;
-    padding: 0.8rem 1rem;
-    border-bottom: 2px solid var(--ink);
-    color: var(--muted);
-  }
-
-  .comparison-table td {
-    padding: 0.85rem 1rem;
-    border-bottom: 1px solid var(--rule);
-    vertical-align: top;
-    line-height: 1.55;
-  }
-
-  .comparison-table tr:last-child td {
-    border-bottom: none;
-  }
-
-  .comparison-table td:first-child {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 600;
-    font-size: 0.82rem;
-    white-space: nowrap;
-    color: var(--muted);
-  }
-
-  /* ─── GAP CALLOUTS ─── */
-  .gap-callout {
-    margin: 2.5rem 0;
-    padding: 2rem;
-    border-radius: 8px;
-    position: relative;
-  }
-
-  .gap-callout.warning {
-    background: #fef9ee;
-    border: 1px solid #f0dca0;
-  }
-
-  .gap-callout.success {
-    background: #f0f7f4;
-    border: 1px solid #b8d9ca;
-  }
-
-  .gap-callout .callout-tag {
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: 0.68rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    margin-bottom: 0.6rem;
-  }
-
-  .gap-callout.warning .callout-tag { color: #b8860b; }
-  .gap-callout.success .callout-tag { color: var(--tier2); }
-
-  .gap-callout p {
-    font-size: 0.92rem;
-    line-height: 1.65;
-    margin-bottom: 0.6rem;
-  }
-
-  .gap-callout p:last-child { margin-bottom: 0; }
 
   /* ─── FOOTER ─── */
   .article-footer {
@@ -418,50 +251,14 @@
     line-height: 1.7;
   }
 
-  /* ─── KEY POINTS ─── */
-  .key-point {
-    display: flex;
-    gap: 1rem;
-    margin: 1.5rem 0;
-    align-items: flex-start;
-  }
-
-  .key-point-marker {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 700;
-    font-size: 0.72rem;
-    color: white;
-    margin-top: 0.15rem;
-  }
-
-  .key-point-marker.t1 { background: var(--tier1); }
-  .key-point-marker.t2 { background: var(--tier2); }
-  .key-point-marker.t3 { background: var(--tier3); }
-
-  .key-point p {
-    margin-bottom: 0;
-    font-size: 0.95rem;
-  }
-
-  /* ─── STRONG / EM ─── */
-  strong {
-    font-weight: 600;
-  }
-
   /* ─── RESPONSIVE ─── */
   @media (max-width: 640px) {
     html { font-size: 16px; }
     .content { padding: 3rem 1.25rem 4rem; }
-    .tier-card { padding: 1.5rem; }
-    .diagram-wrap { margin: 2.5rem -0.5rem; padding: 2rem 1rem; }
-    h2 { font-size: 1.65rem; }
+    .post-card { padding: 1.5rem 1.5rem 1.5rem 1.5rem; }
+    .post-title { padding-right: 1.5rem; font-size: 1.1rem; }
+    .post-desc { padding-right: 1.5rem; }
+    .post-arrow { right: 1.25rem; }
   }
 </style>
 </head>
@@ -469,320 +266,33 @@
 
 <!-- ════════════ HERO ════════════ -->
 <header class="hero">
-  <p class="hero-kicker">A Framework for the AI-Native Organization</p>
-  <h1>Prompt, Context, <em>Intent</em> — The Three Engineering Disciplines of the LLM Era</h1>
+  <p class="hero-eyebrow">Personal notes &amp; essays</p>
+  <h1 class="hero-title">br<span class="accent">A</span>in dump</h1>
   <p class="hero-subtitle">
-    You've mastered the art of talking to an LLM. But as AI moves from a tool you use to infrastructure you depend on, the engineering challenge changes in ways most teams aren't prepared for.
+    A running collection of essays, frameworks, and half-formed ideas about building with AI.
   </p>
-  <p class="hero-meta">February 2026 · 12 min read</p>
   <div class="hero-scroll"><span></span></div>
 </header>
 
-<!-- ════════════ ARTICLE ════════════ -->
-<article class="content">
+<!-- ════════════ TABLE OF CONTENTS ════════════ -->
+<main class="content">
 
-  <p class="lede">
-    There's a pattern hiding in plain sight. Every organization adopting large language models goes through the same three stages of maturity — and at each stage, the engineering discipline that matters most is fundamentally different. Getting this wrong doesn't just slow you down. It means solving yesterday's problem while tomorrow's is already eating your roadmap.
-  </p>
+  <div class="year-group">
+    <p class="year-label">2026</p>
 
-  <p>
-    When a developer sits down to get a single useful answer from GPT-4 or Claude, they reach for <strong>Prompt Engineering</strong> — the craft of shaping an input to get the right output. When that developer builds a chatbot or an agent that holds a multi-turn conversation, they discover that great prompts aren't enough; they need <strong>Context Engineering</strong> — the discipline of managing what the model knows and when it knows it. And when an organization deploys AI across dozens of products, hundreds of workflows, and thousands of users, even brilliant context management can't save them. They need something that barely has a name yet: <strong>Intent Engineering</strong>.
-  </p>
+    <div class="month-group">
+      <p class="month-label">February</p>
 
-  <p>
-    These three disciplines aren't competing approaches. They're nested layers, each one emerging from the limits of the one before. Understanding where you are — and where you need to go — is the difference between teams that get real value from AI and those that generate impressive demos that never survive contact with production.
-  </p>
-
-  <!-- ─── DIAGRAM ─── -->
-  <div class="diagram-wrap">
-    <p class="diagram-title">The Maturity Spectrum</p>
-    <div class="scale-diagram">
-      <div class="scale-tier">
-        <div class="scale-icon">◈</div>
-        <div class="scale-name">Prompt Engineering</div>
-        <div class="scale-scope">Single interaction<br>One human → One model<br>Craft the perfect input</div>
-      </div>
-      <div class="scale-tier">
-        <div class="scale-icon">◇◇</div>
-        <div class="scale-name">Context Engineering</div>
-        <div class="scale-scope">Session / agent<br>Stateful conversation<br>Manage the memory</div>
-      </div>
-      <div class="scale-tier">
-        <div class="scale-icon">◆◆◆</div>
-        <div class="scale-name">Intent Engineering</div>
-        <div class="scale-scope">Organizational scale<br>Many users → Many models<br>Align the system</div>
-      </div>
+      <a class="post-card" href="2026/02/20260224-prompt-context-intent.html">
+        <p class="post-date">Feb 24, 2026</p>
+        <h2 class="post-title">Prompt, Context, Intent — The Three Engineering Disciplines of the LLM Era</h2>
+        <p class="post-desc">Every organization adopting LLMs goes through the same three stages. Understanding which discipline you actually need changes everything.</p>
+        <span class="post-arrow">→</span>
+      </a>
     </div>
   </div>
 
-  <hr class="divider heavy">
-
-  <!-- ════════════ TIER 1: PROMPT ENGINEERING ════════════ -->
-  <p class="section-label tier-1">Tier One</p>
-  <h2>Prompt Engineering: The Art of the Single Shot</h2>
-
-  <p>
-    Prompt Engineering is where every AI practitioner starts, and for good reason. When you're working with a single LLM call — a completion, a classification, a generation — the quality of your output is almost entirely determined by the quality of your input. This is the discipline of crafting that input with precision.
-  </p>
-
-  <p>
-    At its core, Prompt Engineering treats the model as a function: <code>f(prompt) → output</code>. Your job is to shape the argument so that the function returns what you actually need. This sounds simple, but the design space is enormous. A well-engineered prompt encodes not just what you want, but how you want it, what the boundaries are, what format the answer should take, and what persona or expertise the model should channel.
-  </p>
-
-  <h3>What matters most</h3>
-
-  <div class="tier-card t1">
-    <h4>The Five Pillars of Strong Prompts</h4>
-    <p><strong>Clarity of task specification.</strong> Ambiguity is the enemy. The difference between "summarize this document" and "produce a three-sentence executive summary focusing on financial risk, written for a board audience" is the difference between a C-grade output and an A.</p>
-    <p><strong>Structured output formatting.</strong> Telling the model what shape its answer should take — JSON, markdown, a specific template — eliminates an entire category of post-processing headaches.</p>
-    <p><strong>Few-shot examples.</strong> Showing the model what "good" looks like is often more effective than describing it. Two or three well-chosen examples can do what paragraphs of instruction cannot.</p>
-    <p><strong>Role and persona framing.</strong> "You are a senior tax attorney reviewing this clause" activates a different distribution of the model's capabilities than "answer this legal question."</p>
-    <p><strong>Constraint definition.</strong> Telling the model what <em>not</em> to do is just as important as telling it what to do. Guardrails, word limits, forbidden topics, required disclaimers — these are the fences that keep the output in bounds.</p>
-  </div>
-
-  <h3>Where the gaps are</h3>
-
-  <p>
-    Prompt Engineering is powerful but fundamentally limited. It operates in a memoryless world. Every call starts from zero. The model doesn't know what it said ten seconds ago, doesn't remember your preferences, can't learn from its mistakes within a session. For a one-shot task — "translate this," "classify this email," "extract these fields" — that's fine. But the moment you need continuity, Prompt Engineering starts to buckle.
-  </p>
-
-  <p>
-    The other gap is <strong>fragility</strong>. Prompts are astonishingly sensitive to phrasing. Reordering sentences, changing a word, even adjusting punctuation can materially alter outputs. This makes prompts hard to version, hard to test, and hard to maintain at scale. Teams often discover that a prompt that works brilliantly with one model version breaks silently when the provider ships an update.
-  </p>
-
-  <div class="gap-callout warning">
-    <p class="callout-tag">The ceiling</p>
-    <p>Prompt Engineering optimizes a single call. But real-world AI use is rarely a single call. The moment you need multi-turn conversation, tool use, retrieval, or memory, you've outgrown the paradigm. The prompt is still important — it's just no longer <em>sufficient</em>.</p>
-  </div>
-
-  <hr class="divider">
-
-  <!-- ════════════ TIER 2: CONTEXT ENGINEERING ════════════ -->
-  <p class="section-label tier-2">Tier Two</p>
-  <h2>Context Engineering: Orchestrating What the Model Knows</h2>
-
-  <p>
-    If Prompt Engineering is about crafting a single perfect input, Context Engineering is about managing the <em>entire information environment</em> that surrounds the model across a conversation or agent session. This is the discipline that emerges when you move from one-shot calls to stateful, multi-turn interactions — chatbots, coding assistants, research agents, customer support systems.
-  </p>
-
-  <p>
-    The core insight of Context Engineering is that in a multi-turn interaction, the model's context window becomes your most valuable and most constrained resource. Everything the model can "think about" must fit inside that window. Your job is no longer just writing a good prompt — it's deciding what information gets in, what gets left out, what gets summarized, what gets retrieved just-in-time, and how the conversation's own history is compressed and maintained.
-  </p>
-
-  <p>
-    Where Prompt Engineering treats the model as <code>f(prompt) → output</code>, Context Engineering treats it as <code>f(system_prompt, memory, retrieved_docs, tool_results, conversation_history, current_message) → output</code>. The prompt is still in there. It's just one ingredient among many.
-  </p>
-
-  <h3>What matters most</h3>
-
-  <div class="tier-card t2">
-    <h4>The Core Challenges of Context</h4>
-    <p><strong>Context window management.</strong> Even with models supporting 100K+ tokens, context windows are finite. Long conversations degrade as critical information gets pushed out by noise. Effective Context Engineering involves strategic summarization, sliding windows, and priority-based retention so the model always has access to what matters most.</p>
-    <p><strong>Retrieval-Augmented Generation (RAG).</strong> Rather than stuffing everything into the context upfront, good systems retrieve relevant information on demand — pulling from vector databases, knowledge bases, or APIs only when the conversation requires it. The quality of your retrieval pipeline directly determines the quality of your model's answers.</p>
-    <p><strong>Tool use and function calling.</strong> Modern agents don't just generate text — they call functions, query databases, execute code, and browse the web. Context Engineering means deciding which tools are available, when to invoke them, and how to feed their results back into the conversation in a way the model can reason about.</p>
-    <p><strong>Memory systems.</strong> Short-term memory (conversation history), medium-term memory (session summaries), and long-term memory (user preferences, past interactions) each require different strategies. The model itself is stateless; memory is an engineering problem.</p>
-    <p><strong>System prompt architecture.</strong> The system prompt in a context-engineered system isn't a single paragraph — it's a carefully layered document that defines persona, capabilities, constraints, available tools, formatting rules, and dynamic context injected at runtime.</p>
-  </div>
-
-  <h3>Where the gaps are</h3>
-
-  <p>
-    Context Engineering solves the statefulness problem, but it introduces new ones. The biggest is <strong>context pollution</strong> — irrelevant or low-quality information that creeps into the context window over time, silently degrading performance. A RAG system that retrieves four marginally relevant documents is worse than one that retrieves a single highly relevant one. A conversation history that includes every tangent and false start wastes precious tokens.
-  </p>
-
-  <p>
-    The second gap is <strong>evaluation</strong>. How do you know your context strategy is working? In Prompt Engineering, you can test inputs against expected outputs. In Context Engineering, the combinatorial space explodes: the same message might produce different results depending on what happened ten turns ago, which documents were retrieved, and which tool results are in context. Testing becomes multidimensional and expensive.
-  </p>
-
-  <p>
-    The third — and most subtle — gap is that Context Engineering still assumes a fundamentally <strong>human-in-the-loop</strong> model. Someone is building the chatbot. Someone is designing the agent flow. Someone is choosing the retrieval strategy. It's artisanal, bespoke, and deeply tied to the skill of individual engineers. That works when you have one product with one AI feature. It does not work when you have fifty.
-  </p>
-
-  <div class="gap-callout warning">
-    <p class="callout-tag">The ceiling</p>
-    <p>Context Engineering optimizes a single session, agent, or product. But organizations don't deploy one agent — they deploy many, across different teams, products, and use cases. When the number of AI touchpoints grows beyond what a single team can hand-tune, you need a different kind of engineering entirely.</p>
-  </div>
-
-  <hr class="divider">
-
-  <!-- ════════════ TIER 3: INTENT ENGINEERING ════════════ -->
-  <p class="section-label tier-3">Tier Three</p>
-  <h2>Intent Engineering: Aligning AI Systems with Organizational Purpose</h2>
-
-  <p>
-    Intent Engineering is the discipline that most organizations don't know they need until they're already drowning. It emerges at the point where AI is no longer a feature — it's infrastructure. Where dozens of teams are building dozens of AI-powered workflows, each with their own prompts, their own context strategies, their own models, their own evaluation criteria, and their own understanding of what "good" means.
-  </p>
-
-  <p>
-    The core problem Intent Engineering solves is this: <strong>how do you ensure that an AI system at organizational scale consistently does what the organization actually wants?</strong> Not what an individual prompt asks for. Not what a single agent's context window contains. But what the business, the product, the brand, the legal team, and the end users all need — simultaneously, across every interaction, reliably and measurably.
-  </p>
-
-  <p>
-    If Prompt Engineering asks "how do I get a good response?" and Context Engineering asks "how do I manage a good conversation?", Intent Engineering asks "how do I build a system where <em>every</em> AI interaction across my entire organization is aligned with what we're trying to achieve?"
-  </p>
-
-  <h3>What matters most</h3>
-
-  <div class="tier-card t3">
-    <h4>The Pillars of Intent at Scale</h4>
-    <p><strong>Intent taxonomies.</strong> Before you can align AI to organizational intent, you need to articulate that intent explicitly. This means building structured taxonomies of what your AI systems should do, how they should behave, what they should prioritize, and where the boundaries are — then making those taxonomies machine-readable and enforceable.</p>
-    <p><strong>Governance and guardrail systems.</strong> At scale, you can't rely on individual prompt authors to remember the brand guidelines, the legal constraints, the safety requirements, or the product strategy. Intent Engineering builds centralized guardrail systems — policy-as-code, automated evaluation, model behavior auditing — that apply consistently across every deployment.</p>
-    <p><strong>Evaluation infrastructure.</strong> Intent Engineering invests heavily in evaluation: automated scoring, human review loops, regression detection, drift monitoring, and A/B testing at the system level. The question isn't "did this response look good?" but "are our AI interactions, in aggregate, moving the metrics we care about?"</p>
-    <p><strong>Model routing and orchestration.</strong> Different intents require different models, different temperatures, different context strategies, and different cost profiles. Intent Engineering builds routing layers that match incoming requests to the right model configuration based on the classified intent — sending a simple FAQ to a small model and a complex legal question to a large one.</p>
-    <p><strong>Feedback loops and continuous alignment.</strong> User behavior, business outcomes, safety incidents, and model updates all generate signals. Intent Engineering builds the infrastructure to capture these signals and translate them into systematic improvements — not ad hoc prompt tweaks, but structural adjustments to the intent layer itself.</p>
-  </div>
-
-  <h3>Where the gaps are</h3>
-
-  <p>
-    Intent Engineering is the youngest of these disciplines, and it shows. The <strong>tooling is immature</strong>. Most organizations cobble together intent classification from custom scripts, prompt management from spreadsheets, and evaluation from vibes. There is no "React for Intent Engineering" — no widely adopted framework that makes the common patterns easy.
-  </p>
-
-  <p>
-    The <strong>organizational challenge</strong> is just as severe. Intent Engineering requires collaboration between product managers, engineers, legal teams, brand strategists, and data scientists. Most organizations don't have a clear home for this work. It falls awkwardly between platform engineering, product management, and AI/ML — which means it often falls through the cracks entirely.
-  </p>
-
-  <p>
-    Perhaps the deepest gap is <strong>measurement</strong>. How do you measure whether an AI system is aligned with organizational intent? Accuracy, relevance, safety, brand consistency, user satisfaction, cost efficiency, latency — these metrics often compete with each other. Intent Engineering requires making those trade-offs explicit, which requires a level of strategic clarity about AI's role that most organizations haven't yet developed.
-  </p>
-
-  <div class="gap-callout warning">
-    <p class="callout-tag">The frontier</p>
-    <p>Intent Engineering is where the industry is headed but hasn't arrived. The organizations solving it today are building competitive moats that will be very difficult to replicate. The ones ignoring it are accumulating AI debt that compounds with every new deployment.</p>
-  </div>
-
-  <hr class="divider heavy">
-
-  <!-- ════════════ COMPARISON ════════════ -->
-  <h2>Side by Side</h2>
-
-  <table class="comparison-table">
-    <thead>
-      <tr>
-        <th></th>
-        <th>Prompt Eng.</th>
-        <th>Context Eng.</th>
-        <th>Intent Eng.</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Scope</td>
-        <td>Single LLM call</td>
-        <td>Session or agent</td>
-        <td>Organization-wide</td>
-      </tr>
-      <tr>
-        <td>Core question</td>
-        <td>"What do I say?"</td>
-        <td>"What does it know?"</td>
-        <td>"What should it want?"</td>
-      </tr>
-      <tr>
-        <td>Optimizes for</td>
-        <td>Output quality</td>
-        <td>Conversational coherence</td>
-        <td>Systemic alignment</td>
-      </tr>
-      <tr>
-        <td>Key artifact</td>
-        <td>The prompt template</td>
-        <td>The context pipeline</td>
-        <td>The intent taxonomy</td>
-      </tr>
-      <tr>
-        <td>Failure mode</td>
-        <td>Bad individual response</td>
-        <td>Lost context, hallucination</td>
-        <td>Misaligned behavior at scale</td>
-      </tr>
-      <tr>
-        <td>Evaluation</td>
-        <td>Manual review, spot checks</td>
-        <td>Session-level metrics</td>
-        <td>Aggregate analytics, drift detection</td>
-      </tr>
-      <tr>
-        <td>Who owns it</td>
-        <td>Individual developer</td>
-        <td>Product/AI team</td>
-        <td>Cross-functional, platform-level</td>
-      </tr>
-      <tr>
-        <td>Maturity</td>
-        <td>Well understood</td>
-        <td>Emerging best practices</td>
-        <td>Frontier, early adopters only</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <hr class="divider">
-
-  <!-- ════════════ HOW TO FILL THE GAPS ════════════ -->
-  <h2>Filling the Gaps: A Practical Path Forward</h2>
-
-  <p>
-    If you're reading this and recognizing that your organization is somewhere between Prompt Engineering and Context Engineering — congratulations, you're exactly where most teams are in early 2026. Here's how to think about the transition.
-  </p>
-
-  <h3>From Prompt to Context</h3>
-
-  <p>
-    The transition from Prompt Engineering to Context Engineering usually happens organically. You build a chatbot, and you realize that the tenth message in a conversation is terrible because the model has lost track of what was discussed in the first three. That's your signal.
-  </p>
-
-  <div class="gap-callout success">
-    <p class="callout-tag">Start here</p>
-    <p><strong>Instrument your context windows.</strong> Before optimizing, understand what's actually in them. Log the full context sent to the model for a sample of requests. You'll almost certainly find that 30–50% of tokens are wasted on irrelevant information. Trim the fat before adding complexity.</p>
-    <p><strong>Invest in retrieval quality over quantity.</strong> A RAG pipeline that returns three highly relevant chunks beats one that returns ten mediocre ones. Measure retrieval precision, not just recall. And test your retrieval independently from your generation — they're separate problems.</p>
-    <p><strong>Build your system prompts like software.</strong> Version them. Test them. Review them in pull requests. Inject dynamic context at runtime rather than maintaining dozens of static prompt variants.</p>
-  </div>
-
-  <h3>From Context to Intent</h3>
-
-  <p>
-    The transition to Intent Engineering is harder because it's organizational, not just technical. It typically gets forced by one of three triggers: a safety incident that reveals inconsistent guardrails, a cost crisis as dozens of teams independently spin up expensive model calls, or a product quality problem where users get wildly different AI experiences in different parts of the same product.
-  </p>
-
-  <div class="gap-callout success">
-    <p class="callout-tag">Start here</p>
-    <p><strong>Audit your AI footprint.</strong> Most organizations don't even know how many places they're calling LLMs, with what prompts, using which models, at what cost. A simple inventory is the foundation everything else builds on.</p>
-    <p><strong>Centralize your guardrails.</strong> Even before building a full intent taxonomy, extract the common constraints — safety rules, brand voice, legal disclaimers, PII handling — into a shared layer that every deployment inherits. This alone eliminates an enormous class of inconsistency.</p>
-    <p><strong>Build evaluation as infrastructure, not afterthought.</strong> Invest in automated evaluation pipelines that run against every deployment. Start simple: does the output match the format? Does it contain prohibited content? Is it within the expected length? Then layer in more sophisticated metrics over time.</p>
-    <p><strong>Create the role.</strong> Intent Engineering doesn't happen without someone owning it. Whether that's an "AI Platform" team, an "AI Governance" function, or a working group with representation from product, engineering, legal, and brand — someone needs to be accountable for cross-cutting AI quality.</p>
-  </div>
-
-  <hr class="divider">
-
-  <!-- ════════════ CLOSING ════════════ -->
-  <h2>The Discipline That Doesn't Have a Name Yet</h2>
-
-  <p>
-    Every technology goes through a predictable arc: from individual heroics to team practices to organizational discipline. We saw it with software engineering, with DevOps, with data engineering, with security. AI is on the same arc, and it's moving fast.
-  </p>
-
-  <p>
-    Prompt Engineering was the individual heroics phase — a gifted engineer who knew how to whisper to GPT could produce magical results. Context Engineering is the team practices phase — building repeatable systems for managing model interactions within a product. Intent Engineering is the organizational discipline phase — ensuring that AI works correctly, consistently, and in alignment with purpose at scale.
-  </p>
-
-  <p>
-    Most organizations are still romanticizing phase one while the competitive landscape has already moved to phase two, and the leaders are deep in phase three. The good news is that each phase builds on the last. Your prompt engineering skills don't become irrelevant when you move to context engineering — they become the atoms that the larger system is built from. And your context engineering pipelines don't disappear when you adopt intent engineering — they become the channels through which intent flows.
-  </p>
-
-  <blockquote>
-    The question isn't which discipline to invest in. It's whether you're investing at the right altitude for the problems you actually have.
-  </blockquote>
-
-  <p>
-    If your AI interactions are standalone and stateless, master your prompts. If they're conversational and agent-driven, master your context. And if AI is woven into the fabric of your organization — or if it will be within the next twelve months — it's time to start engineering your intent.
-  </p>
-
-  <p>
-    The models are going to keep getting better. The discipline of using them well is entirely on us.
-  </p>
-
-</article>
+</main>
 
 <!-- ════════════ FOOTER ════════════ -->
 <footer class="article-footer">
