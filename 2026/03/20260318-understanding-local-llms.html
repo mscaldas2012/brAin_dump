@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Small But Mighty: The Case for Running LLMs Locally</title>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0f1117;
+      --bg2:         #161b27;
+      --bg3:         #1c2333;
+      --border:      #2a3245;
+      --accent:      #7c3aed;
+      --accent-lite: #a78bfa;
+      --accent-glow: rgba(124, 58, 237, 0.15);
+      --green:       #34d399;
+      --amber:       #fbbf24;
+      --rose:        #f87171;
+      --text:        #e2e8f0;
+      --text-muted:  #94a3b8;
+      --text-dim:    #64748b;
+      --code-bg:     #0d1117;
+      --font-sans:   'Inter', 'Segoe UI', system-ui, sans-serif;
+      --font-mono:   'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 17px;
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+
+    /* ── Google Fonts ─────────────────────────────────────────────── */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    /* ── Progress bar ─────────────────────────────────────────────── */
+    #progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-lite));
+      z-index: 1000;
+      transition: width 0.1s linear;
+    }
+
+    /* ── Hero ─────────────────────────────────────────────────────── */
+    .hero {
+      background: linear-gradient(135deg, #0f1117 0%, #1a1040 60%, #0f1117 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 80px 24px 64px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 800px 400px at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      display: inline-block;
+      background: var(--accent-glow);
+      border: 1px solid rgba(124,58,237,0.4);
+      color: var(--accent-lite);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      max-width: 820px;
+      margin: 0 auto 24px;
+      background: linear-gradient(135deg, #e2e8f0 30%, var(--accent-lite));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 560px;
+      margin: 0 auto 40px;
+    }
+    .meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      color: var(--text-dim);
+      font-size: 13px;
+    }
+    .meta span { display: flex; align-items: center; gap: 6px; }
+    .meta svg { width: 14px; height: 14px; }
+
+    /* ── Layout ───────────────────────────────────────────────────── */
+    .container {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 64px 24px 96px;
+    }
+
+    /* ── TOC ──────────────────────────────────────────────────────── */
+    .toc {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 56px;
+    }
+    .toc h3 {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 16px;
+    }
+    .toc ol {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .toc li { color: var(--text-muted); font-size: 15px; }
+    .toc a { color: var(--accent-lite); text-decoration: none; }
+    .toc a:hover { color: var(--text); text-decoration: underline; }
+
+    /* ── Prose ────────────────────────────────────────────────────── */
+    article p {
+      color: var(--text);
+      margin-bottom: 1.5rem;
+    }
+
+    article h2 {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #f1f5f9;
+      margin-top: 60px;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    article h2::before {
+      content: '//';
+      color: var(--accent);
+      margin-right: 10px;
+      font-weight: 400;
+      font-size: 1.1rem;
+    }
+
+    article h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--accent-lite);
+      margin-top: 36px;
+      margin-bottom: 14px;
+    }
+
+    article strong { color: #f1f5f9; font-weight: 600; }
+    article em { color: var(--text-muted); font-style: italic; }
+
+    article a { color: var(--accent-lite); text-decoration: underline; text-underline-offset: 3px; }
+    article a:hover { color: #fff; }
+
+    /* ── Code ─────────────────────────────────────────────────────── */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px 24px;
+      overflow-x: auto;
+      margin: 28px 0;
+      font-family: var(--font-mono);
+      font-size: 13.5px;
+      line-height: 1.65;
+      position: relative;
+    }
+    pre code { color: #cdd6f4; background: none; padding: 0; border-radius: 0; }
+
+    /* Syntax-like colouring via span classes injected by JS */
+    .tok-kw   { color: #cba6f7; }   /* keywords */
+    .tok-str  { color: #a6e3a1; }   /* strings  */
+    .tok-cmt  { color: #585b70; font-style: italic; }
+    .tok-fn   { color: #89b4fa; }
+    .tok-num  { color: #fab387; }
+    .tok-var  { color: #f38ba8; }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      background: var(--bg3);
+      color: var(--accent-lite);
+      padding: 2px 7px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+    }
+
+    /* ── Callout cards ────────────────────────────────────────────── */
+    .callout {
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin: 32px 0;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .callout-tip   { background: rgba(52,211,153,0.07); border-left: 3px solid var(--green); }
+    .callout-warn  { background: rgba(251,191,36,0.07); border-left: 3px solid var(--amber); }
+    .callout-key   { background: var(--accent-glow);   border-left: 3px solid var(--accent); }
+    .callout-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .callout-tip   .callout-label { color: var(--green); }
+    .callout-warn  .callout-label { color: var(--amber); }
+    .callout-key   .callout-label { color: var(--accent-lite); }
+
+    /* ── Comparison table ────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; margin: 32px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th {
+      background: var(--bg3);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: top;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* ── Decision tree ─────────────────────────────────────────────*/
+    .decision {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin: 32px 0;
+    }
+    .decision-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .decision-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .decision-q {
+      background: var(--accent-glow);
+      border: 1px solid rgba(124,58,237,0.3);
+      color: var(--accent-lite);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    .decision-a { color: var(--text-muted); font-size: 15px; line-height: 1.6; }
+    .decision-a strong { color: var(--text); }
+
+    /* ── Quant ladder ─────────────────────────────────────────────── */
+    .quant-ladder {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 28px 0;
+    }
+    .quant-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .quant-tag {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      width: 80px;
+      flex-shrink: 0;
+      color: var(--text);
+    }
+    .quant-bar-wrap { flex: 1; background: var(--bg3); border-radius: 4px; height: 8px; overflow: hidden; }
+    .quant-bar { height: 100%; border-radius: 4px; }
+    .quant-label { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+
+    /* ── Horizontal rule ─────────────────────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 48px 0;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      color: var(--text-dim);
+      font-size: 13px;
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .hero { padding: 60px 20px 48px; }
+      .container { padding: 40px 20px 72px; }
+      .toc, .decision { padding: 20px; }
+      pre { padding: 16px; font-size: 12.5px; }
+      .decision-item { flex-direction: column; gap: 8px; }
+    }
+  </style>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "763b29a7634e48e48bbdcb37b13ba83a"}'></script><!-- End Cloudflare Web Analytics -->
+</head>
+<body>
+
+<!-- Reading progress -->
+<div id="progress-bar"></div>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="hero-tag">Local AI · Practical Guide</div>
+  <h1>Small But Mighty:<br>The Case for Running LLMs Locally</h1>
+  <p class="hero-sub">What you actually need to know about small models, quantization, formats, and local runtimes — without the hype.</p>
+  <div class="meta">
+    <span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      13 min read
+    </span>
+    <span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      Models · Quantization · Formats · Runtimes
+    </span>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- TOC -->
+  <nav class="toc" aria-label="Table of contents">
+    <h3>In this article</h3>
+    <ol>
+      <li><a href="#families">The model families you need to know</a></li>
+      <li><a href="#compression">Making them small: quantization &amp; distillation</a></li>
+      <li><a href="#formats">The model file zoo: what are all these formats?</a></li>
+      <li><a href="#finding">Finding the right model</a></li>
+      <li><a href="#running">Running them: your options</a></li>
+      <li><a href="#pick">How to pick</a></li>
+      <li><a href="#whats-next">This is just the beginning</a></li>
+    </ol>
+  </nav>
+
+  <article>
+
+    <!-- Intro -->
+    <p>We all get excited when the big companies release their new frontier models — probably by now with trillions of parameters. And if you've been in the game for a little while, you see leaps and bounds with each new version. With this, we tend to think those large LLMs — Claude Opus, Gemini Ultra, GPT-4o — are the kings out there. And they probably are. But they also cost ya! You can't go too crazy using them, or you'll need a second mortgage to cover your AI bills.</p>
+
+    <p>For the last couple of weeks, I started playing with models that run <strong>locally on my machine</strong>. I was very impressed. Some small LLMs can really throw a punch. They're not at the level of the big guys — I haven't switched the LLM powering my coding tools yet. But for simpler tasks — summarizing text or transcripts, classifying inputs, generating content — those little guys can get the job done, and done well.</p>
+
+    <p>It shouldn't be such a surprise. A quick browse on Hugging Face and the insane number of options tells us a different story is unfolding. There are thousands of models, and they differ in ways that actually matter: how they've been compressed, how they've been fine-tuned, what format they're packaged in. With a little understanding of how they're organized, you can get a lot done without ever touching a paid API.</p>
+
+    <p>This article is about exactly that: making sense of the local LLM landscape — what the models actually are, how they're shrunk down to run on your hardware, and the tools to run them.</p>
+
+    <!-- ── Section 1 ────────────────────────────────────────────── -->
+    <h2 id="families">The Model Families You Need to Know</h2>
+
+    <p>Before we get into the how, let's cover who's who. The model landscape splits into two camps: <strong>closed frontier models</strong> (API-only) and <strong>open-weight models</strong> (download and run yourself).</p>
+
+    <p><strong>The closed-only crowd</strong> — OpenAI's GPT, Anthropic's Claude, Google's Gemini — these are the heavy hitters. They consistently top benchmarks, handle complex multi-step reasoning, and are the go-to for anything production-critical. The catch: you pay per token, your data goes to their servers, and you have no control over when the model changes under you.</p>
+
+    <p><strong>The open-weight world</strong> is where things get interesting for local use. A few families dominate:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Family</th>
+            <th>Origin</th>
+            <th>Best sizes for local</th>
+            <th>Known for</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>LLaMA 3.x</strong></td>
+            <td>Meta</td>
+            <td>3B, 8B, 70B</td>
+            <td>General-purpose benchmark king; started the open-weight wave</td>
+          </tr>
+          <tr>
+            <td><strong>Mistral / Mixtral</strong></td>
+            <td>Mistral AI (France)</td>
+            <td>7B, 8×7B</td>
+            <td>Extremely efficient; Mixture-of-Experts gives big-model quality cheaply</td>
+          </tr>
+          <tr>
+            <td><strong>Qwen 2.5</strong></td>
+            <td>Alibaba</td>
+            <td>0.5B, 3B, 7B, 14B</td>
+            <td>Multilingual, strong at coding &amp; math, tiny variants (0.5B!) work</td>
+          </tr>
+          <tr>
+            <td><strong>Phi-3 / Phi-4</strong></td>
+            <td>Microsoft</td>
+            <td>3.8B, 14B</td>
+            <td>Trained on curated "textbook" data — punches way above its size</td>
+          </tr>
+          <tr>
+            <td><strong>Gemma 2</strong></td>
+            <td>Google DeepMind</td>
+            <td>2B, 9B, 27B</td>
+            <td>Clean distillation from Gemini; excellent instruction following</td>
+          </tr>
+          <tr>
+            <td><strong>DeepSeek V3 / R1</strong></td>
+            <td>DeepSeek</td>
+            <td>7B, 14B</td>
+            <td>Frontier-class reasoning at open-weight cost; surprised everyone in 2025</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout callout-key">
+      <div class="callout-label">💡 Key Insight</div>
+      Size is not destiny. A well-trained 7B model with great data often outperforms a carelessly trained 30B model. Architecture improvements, better training data, and smarter alignment keep compressing more quality into smaller packages — every 12 months the bar shifts noticeably.
+    </div>
+
+    <!-- ── Section 2 ────────────────────────────────────────────── -->
+    <h2 id="compression">Making Them Small: Quantization &amp; Distillation</h2>
+
+    <p>So how do you get a 70-billion-parameter model — which in its raw form needs around 140 GB of RAM — to run on your laptop? Two techniques: <strong>quantization</strong> and <strong>distillation</strong>. These aren't the same thing, and understanding the difference matters for picking the right model.</p>
+
+    <h3>Quantization: Turning Down the Precision</h3>
+
+    <p>A neural network is fundamentally a giant pile of numbers — billions of floating-point weights tuned during training. In their native form, each weight is stored as a 16-bit or 32-bit float. Quantization says: do we really need all that precision?</p>
+
+    <p>The answer, most of the time, is no. When you quantize a model to <strong>4-bit integers (INT4)</strong>, each weight takes up 4 bits instead of 16 — a 4× size reduction. An 8B model that would normally need ~16 GB of RAM now fits in roughly 4 GB. A 70B model that was GPU-only territory at 140 GB can now run on a 40 GB machine.</p>
+
+    <p>The trade-off is accuracy: you're rounding all those carefully tuned decimal values to a coarser number line. Lose too much precision and the model starts hallucinating more, reasoning worse, getting confused on edge cases.</p>
+
+    <p>The good news: modern quantization methods are remarkably good. The current k-quants approach (used in the GGUF format) applies different quantization levels to different layers of the model — keeping the most sensitive layers more precise. The rule of thumb that's held up well:</p>
+
+    <!-- Quant ladder -->
+    <div class="quant-ladder">
+      <div class="quant-row">
+        <span class="quant-tag">Q2_K</span>
+        <div class="quant-bar-wrap"><div class="quant-bar" style="width:25%;background:#f87171"></div></div>
+        <span class="quant-label">Very small, noticeable quality loss</span>
+      </div>
+      <div class="quant-row">
+        <span class="quant-tag">Q4_K_M</span>
+        <div class="quant-bar-wrap"><div class="quant-bar" style="width:55%;background:#fbbf24"></div></div>
+        <span class="quant-label">⭐ Sweet spot — best speed/quality balance</span>
+      </div>
+      <div class="quant-row">
+        <span class="quant-tag">Q5_K_S</span>
+        <div class="quant-bar-wrap"><div class="quant-bar" style="width:70%;background:#a78bfa"></div></div>
+        <span class="quant-label">Slightly better quality, ~25% larger</span>
+      </div>
+      <div class="quant-row">
+        <span class="quant-tag">Q8_0</span>
+        <div class="quant-bar-wrap"><div class="quant-bar" style="width:88%;background:#34d399"></div></div>
+        <span class="quant-label">Near-lossless, ~2× larger than Q4</span>
+      </div>
+      <div class="quant-row">
+        <span class="quant-tag">F16</span>
+        <div class="quant-bar-wrap"><div class="quant-bar" style="width:100%;background:#60a5fa"></div></div>
+        <span class="quant-label">Full precision — GPU research use</span>
+      </div>
+    </div>
+
+    <div class="callout callout-tip">
+      <div class="callout-label">✓ Practical Rule</div>
+      <strong>Q4_K_M is what 90% of local users end up at.</strong> Good enough quality for almost everything, runs fast, reasonable RAM. Go Q8_0 when quality matters more than speed. Q2_K only when you're truly RAM-constrained.
+    </div>
+
+    <h3>Distillation: Teaching a Small Model with a Big Teacher</h3>
+
+    <p>Distillation is a completely different approach. Instead of compressing an existing model, you <strong>train a new, smaller model</strong> — the "student" — to mimic a larger, more capable model — the "teacher."</p>
+
+    <p>The teacher doesn't just hand over its training data. It hands over something richer: its <em>probability distributions</em>. When the teacher predicts the next word, it doesn't just say "cat" — it says "there's a 62% chance it's 'cat', 18% chance 'kitten', 8% chance 'dog'..." The student learns from these soft distributions, which carry far more information than simple right/wrong labels.</p>
+
+    <p>The result is a small model that behaves more like its large teacher than you'd expect from its size alone. Microsoft's Phi series is the canonical example — training small models on synthetically generated, textbook-quality data from larger models to get outsized reasoning performance. A 3.8B Phi-3 model regularly outperforms 7B models trained on raw web crawls.</p>
+
+    <p>Distillation gives you a <em>new model</em> rather than a compressed version. The quality floor is usually higher — you're not lossily compressing something, you're building something new, informed by a teacher. In practice, most capable local models are <strong>both distilled and quantized</strong>: trained with distillation techniques for quality, then quantized for distribution.</p>
+
+    <!-- ── Section 3 ────────────────────────────────────────────── -->
+    <h2 id="formats">The Model File Zoo: What Are All These Formats?</h2>
+
+    <p>Download a model from Hugging Face and you'll encounter file extensions that look like someone fell asleep on a keyboard: <code>.gguf</code>, <code>.safetensors</code>, <code>.gptq</code>, <code>.awq</code>. Here's what they actually mean.</p>
+
+    <h3>GGUF: The Local Inference Standard</h3>
+
+    <p><strong>GGUF</strong> (GPT-Generated Unified Format) is what you want for running models locally on CPU or a consumer GPU. It was created by the <code>llama.cpp</code> team — a C++ inference engine that runs essentially everywhere.</p>
+
+    <p>GGUF files are <em>self-contained</em>: model weights, architecture metadata, tokenizer, and everything else needed to run live in a single file. You download one file, point your tool at it, done.</p>
+
+    <p>The quantization level is encoded right in the filename — once you learn to read it, it tells you everything:</p>
+
+<pre><code><span class="tok-str">Llama-3.1-8B-Instruct-Q4_K_M.gguf</span>
+│       │   │  │        │   │
+│       │   │  │        │   └── size variant (M = medium calibration)
+│       │   │  │        └────── k-quants quantization method
+│       │   │  └─────────────── 4-bit quantization
+│       │   └────────────────── Instruct = chat fine-tuned
+│       └────────────────────── 8 billion parameters
+└────────────────────────────── base model name</code></pre>
+
+    <h3>SafeTensors: The Training &amp; Research Format</h3>
+
+    <p><strong>SafeTensors</strong> is Hugging Face's standard format for distributing models in their original precision. When you use the <code>transformers</code> library in Python, this is what you're loading. Full-precision (FP16 or BF16) — good for fine-tuning and research when you have a GPU with enough VRAM. Not typically what you want for CPU inference.</p>
+
+    <h3>MLX: Apple Silicon's Native Format</h3>
+
+    <p>If you're on an M-series Mac, <strong>MLX</strong> is your secret weapon. Apple Silicon has <em>unified memory</em> — CPU and GPU share the same RAM pool. This means a 16 GB MacBook can load a 16 GB model entirely "on GPU" in a way that's impossible on most laptops where GPU VRAM is separate and limited.</p>
+
+    <p>Models in MLX format run via Apple's Metal GPU at surprisingly high speeds — an M3 chip running a 7B model at 60–80 tokens per second feels genuinely real-time. The <code>mlx-lm</code> library handles both the format conversion and inference.</p>
+
+    <h3>GPTQ and AWQ: GPU-Optimized Quantization</h3>
+
+    <p><strong>GPTQ</strong> and <strong>AWQ</strong> are quantization formats specifically designed for NVIDIA GPUs. AWQ (Activation-aware Weight Quantization) is newer and achieves slightly better quality at the same bit-width. If you have an RTX 3090 or better, these outperform GGUF on that hardware. Otherwise, stick with GGUF or MLX.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Format</th><th>Best for</th><th>Hardware</th><th>Single file?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>GGUF</strong></td><td>Local inference, widest compatibility</td><td>CPU, GPU, Metal</td><td>✅ Yes</td></tr>
+          <tr><td><strong>SafeTensors</strong></td><td>Fine-tuning, HuggingFace ecosystem</td><td>GPU (VRAM)</td><td>❌ Multiple</td></tr>
+          <tr><td><strong>MLX</strong></td><td>Apple Silicon inference</td><td>M1/M2/M3/M4</td><td>✅ Yes</td></tr>
+          <tr><td><strong>GPTQ</strong></td><td>NVIDIA GPU inference</td><td>NVIDIA GPU</td><td>✅ Yes</td></tr>
+          <tr><td><strong>AWQ</strong></td><td>NVIDIA GPU, better quality than GPTQ</td><td>NVIDIA GPU</td><td>✅ Yes</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ── Section 4 ────────────────────────────────────────────── -->
+    <h2 id="finding">Finding the Right Model</h2>
+
+    <p>With thousands of models and multiple formats, how do you find what you actually want?</p>
+
+    <p><strong>Hugging Face Hub</strong> is the primary repository for the ML world. The <a href="https://huggingface.co/models?library=gguf&sort=downloads" target="_blank" rel="noopener noreferrer">GGUF model filter</a> is your best starting point, sorted by downloads. Download count is a surprisingly good proxy for quality — the community gravitates quickly toward models that actually work.</p>
+
+    <p>Community quantizers like <em>bartowski</em> take official model releases and produce clean GGUF versions at every quantization level within hours of a new drop. When LLaMA or Qwen releases something new, their GGUF builds usually appear the same day.</p>
+
+    <p><strong>Ollama's library</strong> (<code>ollama.com/library</code>) is a curated subset — fewer options, but everything is vetted and pulls with a single command. Think of it as the App Store version: less selection, zero setup headaches.</p>
+
+    <p><strong>OpenRouter</strong> (<code>openrouter.ai</code>) is worth knowing about even if you're primarily running locally. It's a unified API for 100+ models across every provider — free-tier Llama and Mistral models are available. Great for comparing outputs before committing to running one locally.</p>
+
+    <p><strong>Groq</strong> deserves a special mention: it's a cloud inference platform using custom hardware that runs Llama 3.1 8B at roughly 800 tokens/second. Not local, but nearly free and faster than reading — great for rapid experimentation.</p>
+
+    <!-- ── Section 5 ────────────────────────────────────────────── -->
+    <h2 id="running">Running Them: Your Options</h2>
+
+    <p>You've picked a model. Now how do you actually run it? The good news: despite the apparent complexity, every tool ends up exposing an <strong>OpenAI-compatible chat API</strong>. Once you understand one, you understand them all.</p>
+
+    <h3>Ollama: The Easiest Path</h3>
+
+    <p>Ollama is by far the lowest-friction way to get a local LLM running. Install it, run one command, and you have a local model server in minutes. It automatically handles hardware detection — Metal on Mac, CUDA on NVIDIA, CPU everywhere else.</p>
+
+<pre><code><span class="tok-kw">ollama</span> pull llama3.2        <span class="tok-cmt"># downloads the model (~2GB)</span>
+<span class="tok-kw">ollama</span> run  llama3.2        <span class="tok-cmt"># interactive chat in terminal</span>
+<span class="tok-kw">ollama</span> serve                <span class="tok-cmt"># starts REST API server on :11434</span></code></pre>
+
+    <p>Ollama exposes an OpenAI-compatible endpoint, so any code you've written for the OpenAI API just works with a URL swap:</p>
+
+<pre><code><span class="tok-kw">from</span> openai <span class="tok-kw">import</span> OpenAI
+
+client = OpenAI(
+    base_url=<span class="tok-str">"http://localhost:11434/v1"</span>,
+    api_key=<span class="tok-str">"ollama"</span>,  <span class="tok-cmt"># any string works</span>
+)
+<span class="tok-cmt"># Your existing OpenAI code works unchanged</span>
+response = client.chat.completions.create(
+    model=<span class="tok-str">"llama3.2"</span>,
+    messages=[{<span class="tok-str">"role"</span>: <span class="tok-str">"user"</span>, <span class="tok-str">"content"</span>: <span class="tok-str">"Hello!"</span>}],
+)</code></pre>
+
+    <div class="callout callout-warn">
+      <div class="callout-label">⚠ Trade-off</div>
+      Ollama locks you into its model library. Custom GGUF files need a Modelfile wrapper, and some advanced parameters aren't exposed. For most use cases — especially getting started — this trade-off is absolutely worth it.
+    </div>
+
+    <h3>LM Studio: The Desktop GUI</h3>
+
+    <p>LM Studio is a desktop application with a clean UI for downloading, managing, and chatting with local models. It pulls from Hugging Face directly, handles quantization selection for you, has a built-in chat interface, and runs a local OpenAI-compatible API server.</p>
+
+    <p>The key difference from Ollama is the interface: LM Studio is a GUI, making it approachable without command-line comfort. It also exposes fine-grained controls (temperature, context length, repetition penalty) visually. There's a small latency penalty from the server layer, but it's minor in practice. LM Studio is where many people start because it makes the whole ecosystem tangible.</p>
+
+    <h3>llama.cpp and mlx-lm: The Power Tools</h3>
+
+    <p><strong>llama.cpp</strong> is the C++ inference engine that powers most of the local LLM ecosystem under the hood — Ollama itself wraps it. Running it directly via the Python wrapper <code>llama-cpp-python</code> gives you maximum control: custom GGUF files, advanced sampling parameters, precise GPU/CPU layer splitting:</p>
+
+<pre><code><span class="tok-kw">from</span> llama_cpp <span class="tok-kw">import</span> Llama
+
+llm = Llama(
+    model_path=<span class="tok-str">"./Llama-3.1-8B-Instruct-Q4_K_M.gguf"</span>,
+    n_gpu_layers=<span class="tok-num">-1</span>,   <span class="tok-cmt"># -1 = push everything to GPU</span>
+    n_ctx=<span class="tok-num">4096</span>,        <span class="tok-cmt"># context window size</span>
+    n_threads=<span class="tok-num">8</span>,      <span class="tok-cmt"># CPU threads for non-GPU layers</span>
+    verbose=<span class="tok-kw">False</span>,
+)
+output = llm.create_chat_completion(
+    messages=[{<span class="tok-str">"role"</span>: <span class="tok-str">"user"</span>, <span class="tok-str">"content"</span>: <span class="tok-str">"Explain attention in 2 sentences."</span>}]
+)</code></pre>
+
+    <p><strong>mlx-lm</strong> is the Apple Silicon equivalent. If you're on an M-series Mac and want maximum performance, this is your tool. The performance difference is substantial — a 7B model running at 20 tok/s via CPU-only llama.cpp will do 60–80 tok/s via mlx-lm on the same chip, using the Metal GPU and unified memory.</p>
+
+<pre><code><span class="tok-kw">from</span> mlx_lm <span class="tok-kw">import</span> load, generate
+
+model, tokenizer = load(<span class="tok-str">"mlx-community/Llama-3.2-8B-Instruct-4bit"</span>)
+response = generate(model, tokenizer,
+                    prompt=<span class="tok-str">"Explain attention."</span>,
+                    max_tokens=<span class="tok-num">256</span>, verbose=<span class="tok-kw">True</span>)  <span class="tok-cmt"># shows tok/s</span></code></pre>
+
+    <h3>LiteLLM: One Interface for Everything</h3>
+
+    <p>If you're building something that needs to work across multiple providers — sometimes local, sometimes cloud — <strong>LiteLLM</strong> is the answer. It's a Python library that gives every model the same OpenAI-compatible interface. You change one string and routing handles itself:</p>
+
+<pre><code><span class="tok-kw">from</span> litellm <span class="tok-kw">import</span> completion
+
+<span class="tok-cmt"># All of these work identically:</span>
+completion(model=<span class="tok-str">"gpt-4o-mini"</span>, ...)             <span class="tok-cmt"># OpenAI</span>
+completion(model=<span class="tok-str">"claude-3-5-haiku-20241022"</span>, ...)  <span class="tok-cmt"># Anthropic</span>
+completion(model=<span class="tok-str">"ollama/llama3.2"</span>, ...)          <span class="tok-cmt"># Local</span>
+completion(model=<span class="tok-str">"groq/llama-3.1-8b-instant"</span>, ...) <span class="tok-cmt"># Groq</span></code></pre>
+
+    <!-- ── Section 6 ────────────────────────────────────────────── -->
+    <h2 id="pick">Putting It Together: How to Pick</h2>
+
+    <p>The decision tree is simpler than it looks once you've internalized the above:</p>
+
+    <div class="decision">
+      <div class="decision-item">
+        <span class="decision-q">Best quality?</span>
+        <div class="decision-a">Use a frontier API — <strong>GPT, Claude, Gemini</strong>. No local model competes here yet for complex reasoning or nuanced writing.</div>
+      </div>
+      <div class="decision-item">
+        <span class="decision-q">Simple task, zero cost?</span>
+        <div class="decision-a">Grab a <strong>3B–8B model via Ollama</strong>. Summarization, classification, light text generation — free, fast, private.</div>
+      </div>
+      <div class="decision-item">
+        <span class="decision-q">On a Mac?</span>
+        <div class="decision-a">Use <strong>mlx-lm</strong> with a 4-bit Qwen2.5-7B or Llama-3.2-8B. Unified memory + Metal GPU makes these genuinely fast on M-series chips.</div>
+      </div>
+      <div class="decision-item">
+        <span class="decision-q">Max compatibility?</span>
+        <div class="decision-a"><strong>GGUF + llama.cpp</strong> (via Ollama or direct) runs on literally everything — old Intel laptops, Raspberry Pi, servers, VMs.</div>
+      </div>
+      <div class="decision-item">
+        <span class="decision-q">Privacy matters?</span>
+        <div class="decision-a">Local is your only real option. <strong>Nothing leaves your machine.</strong> Medical data, legal data, customer data — local LLMs solve the compliance problem entirely.</div>
+      </div>
+      <div class="decision-item">
+        <span class="decision-q">Building something?</span>
+        <div class="decision-a"><strong>LiteLLM + Ollama locally</strong>, with a cloud API as fallback. Write your code once, swap providers with one string.</div>
+      </div>
+    </div>
+
+    <hr />
+
+    <h2 id="bottom-line">The Bottom Line</h2>
+
+    <p>The local LLM ecosystem has matured fast. Two years ago, running a capable language model locally meant serious tinkering. Today, it's a <code>brew install ollama</code> and a one-line model pull. The models themselves have improved dramatically — a Q4-quantized 8B model from 2025 outperforms what was only possible with 70B models two years ago.</p>
+
+    <p>None of this replaces the frontier models for hard tasks. But for a huge slice of real-world work — document summarizers, classifiers, code completers, text generators, translation tools, voice agents — the small, local models are good enough. They're free, fast, private, and getting better with every release cycle.</p>
+
+    <p>The kings are still the kings. But these days, the paupers are secretly pretty capable.</p>
+
+    <h2 id="whats-next">This Is Just the Beginning</h2>
+
+    <p>What we've covered here — picking a model, understanding quantization, choosing a runtime — is really just getting you to the starting line. Once you have a local model running well for a task, a whole toolkit opens up for making it even better.</p>
+
+    <p><strong>Fine-tuning</strong> is the natural next step. If your model is 80% of the way there but keeps getting your domain's terminology wrong, or isn't following the output format you need, a LoRA fine-tune on even a few hundred curated examples can close that gap dramatically. You're not retraining the whole model — just nudging a tiny fraction of its weights toward the behavior you want, using techniques like QLoRA that fit on consumer hardware.</p>
+
+    <p><strong>RAG (Retrieval-Augmented Generation)</strong> is how you give a local model access to knowledge it wasn't trained on — your internal docs, a product catalog, a knowledge base — without retraining anything. The model fetches relevant chunks at query time and reasons over them. It's often the fastest path from a capable model to a useful product.</p>
+
+    <p><strong>Agents and tool use</strong> let small models punch well above their weight. Give a 7B model a calculator, a web search tool, and a file reader, and suddenly it can complete multi-step tasks that would stump it in a single-shot setting. The model doesn't need to know all the answers — it just needs to know which tool to call.</p>
+
+    <p>The local LLM world moves fast. The model you run today may be outclassed by something half its size in six months. But the fundamentals — quantization, formats, runtimes, fine-tuning, RAG — those stay relevant. Once you understand the stack, keeping up with the new releases becomes a matter of swapping one model file for another.</p>
+
+  </article>
+</main>
+
+
+<script>
+  // Reading progress bar
+  window.addEventListener('scroll', () => {
+    const doc = document.documentElement;
+    const scrolled = doc.scrollTop || document.body.scrollTop;
+    const total = doc.scrollHeight - doc.clientHeight;
+    const pct = total > 0 ? (scrolled / total) * 100 : 0;
+    document.getElementById('progress-bar').style.width = pct + '%';
+  });
+</script>
+
+<nav style="max-width:720px;margin:0 auto;padding:2.5rem 2rem;border-top:1px solid #2a3245;display:flex;justify-content:space-between;align-items:center;font-family:'Inter',sans-serif;font-size:0.75rem;color:#94a3b8;">
+  <a href="../../index.html" style="color:#94a3b8;text-decoration:none;letter-spacing:0.05em;">← Home</a>
+  <a href="../02/20260224-prompt-context-intent.html" style="color:#94a3b8;text-decoration:none;letter-spacing:0.05em;">← Previous</a>
+  <span></span>
+</nav>
+
+</body>
+</html>
