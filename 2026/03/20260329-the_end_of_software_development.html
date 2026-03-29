@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The End of Software as We Knew It</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0e0e0e;
+      --bg2:       #161616;
+      --surface:   #1c1c1c;
+      --border:    #2a2a2a;
+      --text:      #e8e4dc;
+      --muted:     #7a7570;
+      --accent:    #c8a96e;
+      --accent2:   #6e9dc8;
+      --serif:     'Libre Baskerville', Georgia, serif;
+      --mono:      'DM Mono', 'Courier New', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--serif);
+      font-size: 18px;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Progress bar ── */
+    #progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: var(--accent);
+      z-index: 100;
+      transition: width 0.1s linear;
+    }
+
+    /* ── Header / Nav ── */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 50;
+      padding: 0 2rem;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s, background 0.3s;
+    }
+    header.scrolled {
+      background: rgba(14,14,14,0.92);
+      backdrop-filter: blur(12px);
+      border-color: var(--border);
+    }
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .nav-meta {
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 clamp(1.5rem, 8vw, 10rem) clamp(3rem, 8vh, 6rem);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 80% 20%, rgba(200,169,110,0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 10% 80%, rgba(110,157,200,0.05) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 70%, transparent 100%);
+      pointer-events: none;
+    }
+
+    .hero-label {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.8rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+
+    h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 6vw, 5.2rem);
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      max-width: 16ch;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.4s forwards;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-byline {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      display: flex;
+      gap: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.6s forwards;
+    }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 2.5rem;
+      right: clamp(1.5rem, 8vw, 10rem);
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      writing-mode: vertical-rl;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 1s forwards;
+    }
+    .hero-scroll::before {
+      content: '';
+      display: block;
+      width: 1px;
+      height: 48px;
+      background: linear-gradient(to bottom, transparent, var(--muted));
+    }
+
+    /* ── Main content ── */
+    .content-wrap {
+      display: grid;
+      grid-template-columns: 1fr min(68ch, 100%) 1fr;
+      padding: 0 1rem;
+    }
+    .content-wrap > * { grid-column: 2; }
+
+    article {
+      padding: 5rem 0 8rem;
+    }
+
+    /* Intro paragraphs (before first h2) */
+    .intro p {
+      font-size: 1.15rem;
+      line-height: 1.85;
+      color: #cdc9c0;
+      margin-bottom: 1.6rem;
+    }
+    .intro p:first-child::first-letter {
+      font-size: 4.2rem;
+      font-weight: 700;
+      line-height: 0.82;
+      float: left;
+      margin: 0.08em 0.12em 0 0;
+      color: var(--accent);
+    }
+
+    /* Sections */
+    .section {
+      margin-top: 5rem;
+      padding-top: 5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    h2 {
+      font-family: var(--serif);
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 700;
+      font-style: italic;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+      margin-bottom: 2.2rem;
+      color: var(--text);
+    }
+
+    h2::before {
+      content: attr(data-num);
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      font-style: normal;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.7rem;
+    }
+
+    p { margin-bottom: 1.5rem; }
+    p:last-child { margin-bottom: 0; }
+
+    strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    em { font-style: italic; }
+
+    /* Pull quote */
+    blockquote {
+      margin: 3rem 0;
+      padding: 2rem 2.4rem;
+      border-left: 3px solid var(--accent);
+      background: var(--surface);
+      border-radius: 0 6px 6px 0;
+      position: relative;
+    }
+    blockquote p {
+      font-size: 1.05rem;
+      font-style: italic;
+      line-height: 1.7;
+      color: #d4cfc6;
+      margin: 0;
+    }
+    blockquote cite {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin-top: 1rem;
+      font-style: normal;
+    }
+
+    /* Inline highlighted thought */
+    .callout {
+      margin: 2.5rem 0;
+      padding: 1.6rem 2rem;
+      background: linear-gradient(135deg, rgba(200,169,110,0.08) 0%, rgba(200,169,110,0.03) 100%);
+      border: 1px solid rgba(200,169,110,0.2);
+      border-radius: 4px;
+      font-size: 1.05rem;
+      font-style: italic;
+      color: #d8d0c2;
+      line-height: 1.7;
+    }
+
+    /* Section divider ornament */
+    .ornament {
+      text-align: center;
+      color: var(--border);
+      font-size: 1.2rem;
+      letter-spacing: 0.5em;
+      margin: 4rem 0;
+      user-select: none;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 3rem clamp(1.5rem, 8vw, 10rem);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+    }
+
+    /* Animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .hero { padding-bottom: 4rem; }
+      .hero-byline { flex-direction: column; gap: 0.4rem; }
+      .hero-scroll { display: none; }
+      footer { flex-direction: column; gap: 0.8rem; text-align: center; }
+    }
+  </style>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "763b29a7634e48e48bbdcb37b13ba83a"}'></script><!-- End Cloudflare Web Analytics -->
+</head>
+<body>
+
+  <div id="progress"></div>
+
+  <header id="site-header">
+    <span class="nav-logo">dev/thoughts</span>
+    <span class="nav-meta">March 2026</span>
+  </header>
+
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-grid"></div>
+    <p class="hero-label">Essay &nbsp;/&nbsp; Software &nbsp;/&nbsp; AI</p>
+    <h1>The End of Software <em>as We Knew It</em></h1>
+    <div class="hero-byline">
+      <span>8 min read</span>
+      <span>Architecture &nbsp;&middot;&nbsp; AI &nbsp;&middot;&nbsp; Industry</span>
+    </div>
+    <span class="hero-scroll">Scroll</span>
+  </section>
+
+  <div class="content-wrap">
+    <article>
+
+      <div class="intro reveal">
+        <p>For those of us in software development, we are witnessing a shift that is hard to overstate. I don't know a single colleague who hasn't jumped on the AI-assisted development bandwagon. The names we're giving it are still settling: vibe coding, spec-driven development, agentic workflows. Honestly, the labels don't matter much. What matters is this: no one is coding like it's 2024 anymore.</p>
+
+        <p>I find myself delegating bigger and more complex tasks with less and less supervision, and not only getting the results I expected, but being genuinely surprised by how good they are. And the pace of learning required to keep up? Unlike anything I've experienced in my career. Models, agents, tools, context management, MCP&hellip; every day there's something new that needs to be mastered <em>yesterday</em>. Not just a new feature. A whole new thing.</p>
+
+        <p>AI-driven development is the present, not the future. It's here to stay. And this isn't a "will AI replace developers?" essay. It's about something more interesting: how the entire body of knowledge we've built around software development is going to have to change.</p>
+      </div>
+
+      <!-- Section 1 -->
+      <div class="section reveal">
+        <h2 data-num="01 &mdash; Principles">Rethinking the pillars</h2>
+
+        <p>Let me start with <strong>reusability</strong>, one of the most sacred principles in our craft. The entire point of building reusable components was that coding was slow and expensive in human hours. Reusability came with a real cost: code had to be generic, extensible, and complex enough to handle edge cases you hadn't encountered yet. The tradeoff was worth it because the alternative, rewriting things from scratch, was simply too expensive.</p>
+
+        <p>With AI, that equation flips. When generating code is nearly free, why build cumbersome, generic components at all? Code written for a single, specific use case is simpler, more direct, and easier to reason about. The whole architecture of modern software, the plugin systems, the abstract base classes, the endlessly configurable libraries, was largely built to compensate for the cost of human labor. Remove that cost and a lot of that complexity just becomes overhead nobody asked for.</p>
+
+        <p>Reusability also gave us battle-tested code. Widely adopted libraries survived edge cases and had their bugs ironed out over years of real-world use. But as AI code generation improves, will bugs increasingly become a human-coder trait rather than an inevitable artifact of software? I think so. And if that's true, one of the strongest arguments for reusability quietly disappears.</p>
+
+        <p><strong>Maintainability</strong> faces a similar reckoning. The idea, best captured by Harold Abelson in <em>Structure and Interpretation of Computer Programs</em>, was that:</p>
+
+        <blockquote>
+          <p>"Programs must be written for people to read, and only incidentally for machines to execute."</p>
+          <cite>Harold Abelson &nbsp;&mdash;&nbsp; SICP</cite>
+        </blockquote>
+
+        <p>I used to live by that. Maintainability existed because it takes time for a person to understand someone else's code, and that time was expensive. Code had to be legible to be modifiable.</p>
+
+        <p>In the age of AI, does this still matter the same way? If an AI can read, understand, and modify code faster than any human regardless of how it's written, then the case for human-readable code weakens considerably. Documentation, that perpetual holy grail that everyone wanted and no one had time to write, can now be generated on demand. The friction that made maintainability a virtue in the first place is being removed.</p>
+
+        <div class="callout">
+          If AI is doing all the coding, quality assurance, and deployment, should it just develop in its own language? Something it can operate more efficiently, consume fewer tokens with, and solve problems faster in, without all the intermediary layers we built to make code legible to human minds.
+        </div>
+
+        <p>Practical? Maybe not yet. But it exposes something important: a lot of what we call "good software practice" is really "good software practice <em>for humans working with software</em>." Those aren't the same thing.</p>
+      </div>
+
+      <!-- Section 2 -->
+      <div class="section reveal">
+        <h2 data-num="02 &mdash; Architecture">The most interesting open question</h2>
+
+        <p>We've been through a lot of architectural paradigms. Mainframes, client/server, object-oriented monoliths, microservices, containerized deployments, serverless functions, event-driven systems. Each one was an attempt to help <em>people</em> better manage and scale software.</p>
+
+        <p>I was an early microservices adopter. Coming from the rise of object-oriented programming, it felt like the natural next step: decompose your monolith into focused, dedicated services. In retrospect, I can see how much hidden complexity that introduced. Service meshes, distributed tracing, coordination overhead, failure modes nobody anticipated. Some systems genuinely benefited from it. Many were simply over-engineered into failure.</p>
+
+        <p>With AI, I genuinely don't know what comes next. Will we return to monoliths, now that the complexity of managing them can be handled by agents rather than teams of engineers? Will microservices become trivially simple to build and orchestrate? Or will something entirely new emerge, architectures that none of us have thought of yet, conceived by the first generation of engineers working natively with AI from day one?</p>
+
+        <p>This is where I expect the most radical change. The architectural decisions we make today were all shaped by the constraints of human cognition and team coordination. When those constraints shift, the optimal architecture shifts with them.</p>
+      </div>
+
+      <!-- Section 3 -->
+      <div class="section reveal">
+        <h2 data-num="03 &mdash; Market">The software market is going to look very different</h2>
+
+        <p>Think about the logic of buying software today. You pay for a product that does roughly what you need, and you adapt your processes to fit it. The vendor builds for the widest possible market. You accept the parts that don't fit.</p>
+
+        <p>Now imagine building custom software becomes nearly free. Why would a mid-sized company, for example, pay for an off-the-shelf solution when it could build exactly the CRM it needs, with exactly the workflows it uses, in a fraction of the time? Why accept a product shaped for a thousand different customers when you can have one shaped for you?</p>
+
+        <p>Large organizations will be insulated for a while: legacy contracts, existing data, organizational inertia. But the smart ones are already identifying the gaps between what their software does and what they actually need. Startups are even better positioned. They can build precisely what they need right now and grow it as requirements evolve, rather than paying for headroom they may never use.</p>
+
+        <p>I'm not predicting the end of SaaS. Plenty of software solves problems at a scale or depth that no individual organization would want to reproduce. Cloud providers have an advantage too since they're renting hardware, not just software, and that's a different kind of moat. But a substantial portion of what fills the app stores and software catalogs today? That market is going to contract. The real question for every SaaS company is whether it's selling a commodity or something genuinely hard to replicate.</p>
+      </div>
+
+      <!-- Section 4 -->
+      <div class="section reveal">
+        <h2 data-num="04 &mdash; Looking ahead">What comes next</h2>
+
+        <p>The business of software, team structures, pricing models, job titles, career paths, will all look different within a decade. For a while "prompt engineer" seemed like the emerging role to watch. I think the truth is more nuanced. The skills that will matter are judgment, domain knowledge, and the ability to translate between human intent and machine capability. Those aren't new skills. They're the skills that have always differentiated great engineers from merely competent ones. The tools are just changing.</p>
+
+        <p>What I'm most certain of is the uncertainty itself. AI will bring innovation at a scale we haven't really processed yet. The software development lifecycle as we know it, the sprints, the PRs, the deployment pipelines, the architecture reviews, will be unrecognizable in five years. Features will move from idea to production in minutes. The steps in between will become invisible.</p>
+
+        <p>We built all of our practices to manage human limitations: the slowness of writing code, the difficulty of reading someone else's, the cost of coordinating across teams. As those limitations recede, the practices built around them will either evolve or become obstacles.</p>
+
+        <div class="callout">
+          The engineers who thrive won't be the ones who held tightest to the old rules. They'll be the ones who understood <em>why</em> the rules existed, and were willing to let go when the reason was gone.
+        </div>
+      </div>
+
+    </article>
+  </div>
+
+  <footer>
+    <span>dev/thoughts &nbsp;&mdash;&nbsp; 2026</span>
+    <span>The End of Software as We Knew It</span>
+  </footer>
+
+<nav style="max-width:720px;margin:0 auto;padding:2.5rem 2rem;border-top:1px solid #2a2a2a;display:flex;justify-content:space-between;align-items:center;font-family:'DM Mono','Courier New',monospace;font-size:0.75rem;color:#7a7570;">
+  <a href="../../index.html" style="color:#7a7570;text-decoration:none;letter-spacing:0.05em;">← Home</a>
+  <a href="20260318-understanding-local-llms.html" style="color:#7a7570;text-decoration:none;letter-spacing:0.05em;">← Previous</a>
+  <span></span>
+</nav>
+
+  <script>
+    // Reading progress bar
+    const progress = document.getElementById('progress');
+    const header = document.getElementById('site-header');
+    window.addEventListener('scroll', () => {
+      const scrolled = window.scrollY;
+      const total = document.body.scrollHeight - window.innerHeight;
+      progress.style.width = (scrolled / total * 100) + '%';
+      header.classList.toggle('scrolled', scrolled > 40);
+    });
+
+    // Scroll reveal
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.08 });
+    reveals.forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>
