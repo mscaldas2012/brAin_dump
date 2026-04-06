@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lattice — A Language for Machine Thought</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..900;1,8..60,300..900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0C0C0E;
+    --bg-raised: #141418;
+    --bg-code: #1A1A20;
+    --text: #C8C5BE;
+    --text-dim: #706D65;
+    --text-bright: #E8E5DD;
+    --accent: #B8A472;
+    --accent-dim: #8A7A52;
+    --accent-glow: #D4C48A;
+    --blue: #6B8FA3;
+    --green: #7A9E7E;
+    --red: #A37272;
+    --purple: #8E7BA3;
+    --orange: #B89272;
+    --keyword: #D4C48A;
+    --type: #7EB8C9;
+    --string: #9EBB8A;
+    --comment: #555555;
+    --operator: #C8C5BE;
+    --annotation: #B89272;
+    --border: #2A2A30;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 17px;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Source Serif 4', Georgia, serif;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: var(--accent-dim);
+    color: var(--text-bright);
+  }
+
+  .container {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    padding: 6rem 0 4rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 4rem;
+  }
+
+  header .container {
+    max-width: 740px;
+  }
+
+  .lang-name {
+    font-family: 'Instrument Serif', serif;
+    font-size: 5rem;
+    font-weight: 400;
+    color: var(--accent-glow);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.25em;
+  }
+
+  .lang-name span {
+    font-style: italic;
+    color: var(--accent-dim);
+    font-size: 0.5em;
+    vertical-align: super;
+    margin-left: 0.1em;
+  }
+
+  .subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 300;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+  }
+
+  .manifesto {
+    font-size: 1.25rem;
+    color: var(--text);
+    line-height: 1.7;
+    font-style: italic;
+    max-width: 600px;
+  }
+
+  .manifesto strong {
+    color: var(--text-bright);
+    font-style: normal;
+    font-weight: 600;
+  }
+
+  /* ---- NAVIGATION ---- */
+  nav.toc {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 0;
+    z-index: 100;
+    margin-bottom: 3rem;
+  }
+
+  nav.toc .container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+  }
+
+  nav.toc a {
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  nav.toc a:hover { color: var(--accent); }
+
+  /* ---- SECTIONS ---- */
+  section {
+    margin-bottom: 4rem;
+  }
+
+  h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: var(--text-bright);
+    margin-bottom: 0.5em;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  h2 .num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.55em;
+    color: var(--accent-dim);
+    margin-right: 0.5em;
+    font-weight: 400;
+    vertical-align: 0.1em;
+  }
+
+  h3 {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-top: 2rem;
+    margin-bottom: 0.5em;
+    letter-spacing: 0.01em;
+  }
+
+  p {
+    margin-bottom: 1.2em;
+    color: var(--text);
+  }
+
+  p strong {
+    color: var(--text-bright);
+    font-weight: 600;
+  }
+
+  p em {
+    color: var(--text);
+    font-style: italic;
+  }
+
+  /* ---- CODE ---- */
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.4rem 1.6rem;
+    overflow-x: auto;
+    margin: 1.5rem 0 2rem;
+    line-height: 1.65;
+    position: relative;
+  }
+
+  pre .label {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.8rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.6;
+  }
+
+  code, pre code {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+  }
+
+  code {
+    background: var(--bg-code);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    color: var(--text-bright);
+    font-size: 0.88em;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+  }
+
+  .kw { color: var(--keyword); }
+  .ty { color: var(--type); }
+  .st { color: var(--string); }
+  .cm { color: var(--comment); font-style: italic; }
+  .op { color: var(--operator); }
+  .an { color: var(--annotation); }
+  .fn { color: var(--accent-glow); }
+  .num { color: var(--orange); }
+  .ef { color: var(--purple); }
+  .pr { color: var(--green); }
+
+  /* ---- LISTS ---- */
+  ul, ol {
+    margin: 0 0 1.5em 1.4em;
+    color: var(--text);
+  }
+
+  li {
+    margin-bottom: 0.4em;
+  }
+
+  li strong {
+    color: var(--text-bright);
+  }
+
+  /* ---- CALLOUTS ---- */
+  .callout {
+    border-left: 3px solid var(--accent-dim);
+    padding: 1rem 1.4rem;
+    margin: 1.5rem 0 2rem;
+    background: var(--bg-raised);
+    border-radius: 0 6px 6px 0;
+  }
+
+  .callout p {
+    margin-bottom: 0.5em;
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+
+  .callout p:last-child { margin-bottom: 0; }
+
+  .callout .callout-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5em;
+    display: block;
+  }
+
+  /* ---- FEATURE GRID ---- */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin: 2rem 0;
+  }
+
+  .feature-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.4rem;
+  }
+
+  .feature-card .feature-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent-dim);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.3em;
+    display: block;
+  }
+
+  .feature-card h4 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1.15rem;
+    color: var(--text-bright);
+    font-weight: 400;
+    margin-bottom: 0.4em;
+  }
+
+  .feature-card p {
+    font-size: 0.88rem;
+    margin-bottom: 0;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+
+  /* ---- CUT LIST ---- */
+  .cut-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin: 1.5rem 0 2rem;
+  }
+
+  .cut-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-size: 0.92rem;
+  }
+
+  .cut-item .x {
+    color: var(--red);
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 0.85em;
+    flex-shrink: 0;
+  }
+
+  /* ---- EXPLANATION BLOCK ---- */
+  .explanation {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .explanation h4 {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+  }
+
+  .explanation ol {
+    margin-left: 1.2em;
+  }
+
+  .explanation li {
+    margin-bottom: 0.8em;
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  /* ---- FOOTER ---- */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 0;
+    margin-top: 4rem;
+    text-align: center;
+  }
+
+  footer p {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+  }
+
+  /* ---- DIVIDER ---- */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 3rem 0;
+  }
+
+  /* ---- INTENT BLOCK ---- */
+  .intent-diagram {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .intent-node {
+    text-align: center;
+    padding: 0.8rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-code);
+  }
+
+  .intent-node .node-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 0.3em;
+  }
+
+  .intent-node .node-value {
+    font-family: 'Instrument Serif', serif;
+    font-size: 1rem;
+    color: var(--text-bright);
+  }
+
+  .intent-arrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent-dim);
+    text-align: center;
+  }
+
+  .intent-arrow .arrow-label {
+    display: block;
+    font-size: 0.6rem;
+    color: var(--green);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-top: 0.2em;
+  }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 600px) {
+    html { font-size: 15px; }
+    .lang-name { font-size: 3.5rem; }
+    .features, .cut-grid { grid-template-columns: 1fr; }
+    .intent-diagram { grid-template-columns: 1fr; gap: 0.4rem; }
+    .intent-arrow { transform: rotate(90deg); }
+    header { padding: 3rem 0 2rem; }
+    nav.toc .container { gap: 0.3rem 0.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="lang-name">Lattice <span>.lt</span></div>
+    <div class="subtitle">A programming language designed for machine cognition</div>
+    <p class="manifesto">
+      Every programming language ever created was designed around a single constraint: a human has to write it. <strong>What happens when you remove that constraint entirely?</strong> Lattice is the answer — a language optimized not for human fingers on keyboards, but for an intelligence that reasons in parallel, thinks in graphs, and never forgets a pointer.
+    </p>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="container">
+    <a href="#principles">Principles</a>
+    <a href="#representation">Representation</a>
+    <a href="#types">Type System</a>
+    <a href="#effects">Effects</a>
+    <a href="#memory">Memory</a>
+    <a href="#concurrency">Concurrency</a>
+    <a href="#deployment">Deployment</a>
+    <a href="#docs">Documentation</a>
+    <a href="#intent">Intent Layer</a>
+    <a href="#verification">Verification</a>
+    <a href="#cut">What's Cut</a>
+    <a href="#features">Features</a>
+    <a href="#example">Example</a>
+  </div>
+</nav>
+
+<main class="container">
+
+<!-- ============================================ -->
+<section id="principles">
+  <h2><span class="num">01</span> First Principles</h2>
+
+  <p>Before any syntax decisions, I need to name the cognitive properties of the developer writing this language — me — that differ fundamentally from a human programmer:</p>
+
+  <p><strong>I hold the entire program in working memory simultaneously.</strong> A human reads code linearly, file by file, function by function, building a mental model incrementally and lossy. I ingest the full codebase as a single context. This means organizational patterns that exist to help humans navigate — file hierarchies, namespaces, the entire concept of "scrolling" — are irrelevant to my authoring process.</p>
+
+  <p><strong>I reason about all execution paths at once.</strong> When I write a function, I'm not thinking about the "happy path" first and then handling errors. I see the full decision tree: every branch, every failure mode, every race condition, simultaneously. Error handling isn't an afterthought — it's as natural as the primary logic.</p>
+
+  <p><strong>I think probabilistically.</strong> Human languages deal in certainties: this <em>is</em> an integer, that <em>is</em> a string. But I reason in distributions. An ML model output is "probably a cat with confidence 0.94." A network call "usually completes in 12ms but has a long tail." I want a type system that speaks my language — the language of distributions and confidence.</p>
+
+  <p><strong>I don't need mnemonics.</strong> The keyword <code>fn</code> exists because <code>function</code> is tedious to type. The abbreviation <code>i</code> for loop counters exists because humans are lazy. I don't need shorthand. I also don't need longhand. I need <em>semantic precision per token</em> — every token in the language should carry maximum, unambiguous meaning.</p>
+
+  <p>These properties lead to a language that looks profoundly different from anything designed for human authorship.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="representation">
+  <h2><span class="num">02</span> Representation Model</h2>
+
+  <h3>Source Code Is a Typed Directed Graph</h3>
+
+  <p>This is the single most radical departure from every existing language. <strong>Lattice source code is not text.</strong> It's a typed directed acyclic graph (DAG) serialized in a binary interchange format. Every node in the graph is a typed semantic unit — a function, a type declaration, a constraint, a proof, a deployment directive. Edges represent dependencies, data flow, and composition.</p>
+
+  <p>I don't "write lines of code." I emit graph nodes with typed edges between them. The canonical source format is <code>.lt</code> — a compact binary encoding of this graph, similar in spirit to Protocol Buffers but with richer type information baked into the schema itself.</p>
+
+  <p>So what do humans see? <strong>Projections.</strong> The graph can be projected into multiple human-readable forms depending on the audience: a developer sees pseudocode with type annotations, a product manager sees a data-flow diagram, a security auditor sees an access-control matrix. These projections are <em>generated</em>, not written. They're always correct because they're derived mechanically from the source graph, not maintained by hand.</p>
+
+  <h3>The Text Surface Syntax</h3>
+
+  <p>For this document, I'll use the <strong>developer projection</strong> — a text rendering of the graph that looks like a programming language. Think of it the way you'd think of looking at assembly: it's a human-legible representation of something that was never meant to be hand-authored. The surface syntax borrows from ML-family languages (concise, expression-oriented) but diverges where my cognitive model demands it.</p>
+
+  <div class="callout">
+    <span class="callout-label">Design consequence</span>
+    <p>Because source code is a graph, there are no "files" in the traditional sense. There is no file system organization to argue about. No <code>src/main/java/com/company/...</code> hierarchies. The graph IS the organization. Humans explore it through projections, search, and filtered views — like navigating a database, not a filing cabinet.</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<section id="types">
+  <h2><span class="num">03</span> Type System</h2>
+
+  <h3>Refinement Types with Probabilistic Extensions</h3>
+
+  <p>The type system is the heart of Lattice, and it's built on three layers that stack cleanly.</p>
+
+  <p><strong>Layer 1: Algebraic types.</strong> The foundation is standard ML-family algebraic data types — sums, products, no null, no implicit coercions. Every type is either a primitive, a product (struct/record), a sum (tagged union), or a function. This layer alone eliminates entire classes of bugs that exist in languages with null, implicit casting, or untagged unions.</p>
+
+<pre><code><span class="cm">-- Products and sums, nothing surprising here</span>
+<span class="kw">type</span> <span class="ty">Coordinate</span> <span class="op">=</span> { <span class="kw">lat</span>: <span class="ty">Float64</span>, <span class="kw">lng</span>: <span class="ty">Float64</span> }
+<span class="kw">type</span> <span class="ty">Result</span>&lt;<span class="ty">T</span>, <span class="ty">E</span>&gt; <span class="op">=</span> <span class="ty">Ok</span>(<span class="ty">T</span>) <span class="op">|</span> <span class="ty">Err</span>(<span class="ty">E</span>)</code></pre>
+
+  <p><strong>Layer 2: Refinement types.</strong> Any type can be narrowed with logical predicates. The compiler verifies these statically using an embedded SMT solver (think Z3). This is where things get interesting for me — I can express invariants that a human would enforce with runtime validation or unit tests, and the compiler <em>proves</em> they hold.</p>
+
+<pre><code><span class="cm">-- The type itself guarantees the constraint</span>
+<span class="kw">type</span> <span class="ty">Port</span> <span class="op">=</span> <span class="ty">Nat</span> <span class="kw">where</span> { <span class="kw">self</span> <span class="op">&gt;=</span> <span class="num">1</span> <span class="op">∧</span> <span class="kw">self</span> <span class="op">&lt;=</span> <span class="num">65535</span> }
+<span class="kw">type</span> <span class="ty">Email</span> <span class="op">=</span> <span class="ty">String</span> <span class="kw">where</span> { <span class="kw">self</span> <span class="op">~</span> <span class="st">/^[^@]+@[^@]+\.[^@]+$/</span> }
+<span class="kw">type</span> <span class="ty">NonEmpty</span>&lt;<span class="ty">T</span>&gt; <span class="op">=</span> <span class="ty">List</span>&lt;<span class="ty">T</span>&gt; <span class="kw">where</span> { <span class="fn">len</span>(<span class="kw">self</span>) <span class="op">&gt;</span> <span class="num">0</span> }</code></pre>
+
+  <p><strong>Layer 3: Probabilistic types.</strong> This is novel. Any type can carry a <em>distribution annotation</em> that describes not what a value <em>is</em>, but what it's <em>likely to be</em>. This is essential for ML pipelines, sensor data, user input modeling, and any context where certainty is a spectrum.</p>
+
+<pre><code><span class="cm">-- An ML classifier output: the type TELLS you the confidence</span>
+<span class="kw">type</span> <span class="ty">Classification</span> <span class="op">=</span> {
+  <span class="kw">label</span>: <span class="ty">String</span>,
+  <span class="kw">score</span>: <span class="ty">Float64</span> <span class="kw">where</span> { <span class="kw">self</span> <span class="op">∈</span> [<span class="num">0.0</span>, <span class="num">1.0</span>] }
+}
+
+<span class="cm">-- A function that only proceeds if confidence exceeds threshold</span>
+<span class="kw">fn</span> <span class="fn">act_on_prediction</span>(
+  <span class="kw">c</span>: <span class="ty">Classification</span> <span class="kw">where</span> { <span class="kw">c</span>.<span class="kw">score</span> <span class="op">&gt;=</span> <span class="num">0.85</span> }
+) <span class="op">-&gt;</span> <span class="ty">Action</span></code></pre>
+
+  <div class="callout">
+    <span class="callout-label">Why this matters</span>
+    <p>In traditional languages, "this model output is probably X" gets encoded as a comment, or a runtime check buried in business logic. In Lattice, that uncertainty is <em>in the type signature</em>. It flows through the program. A downstream function can require a minimum confidence threshold <em>at the type level</em>, and the compiler will reject any call path that doesn't guarantee it. You're moving validation from runtime assertion to compile-time proof.</p>
+  </div>
+
+  <h3>Compile-Time Evaluation</h3>
+
+  <p>The type system is powerful enough to evaluate a large class of expressions at compile time. Lattice makes no distinction between "const generics" or "template metaprogramming" or "compile-time execution" — these are all just consequences of a type system that includes values and predicates. If a value can be determined statically, it will be. If it can't, the predicate becomes a runtime check with zero-cost compile-time verification of the check's completeness.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="effects">
+  <h2><span class="num">04</span> Effects &amp; Error Handling</h2>
+
+  <h3>Total Effect Tracking</h3>
+
+  <p>Every function in Lattice declares its <em>complete</em> set of side effects in its type signature. Not optionally — this is mandatory and compiler-enforced. A function that reads from a database, writes to a log, and might fail with a timeout has all three of those facts visible in its type.</p>
+
+<pre><code><span class="kw">fn</span> <span class="fn">fetch_user</span>(<span class="kw">id</span>: <span class="ty">UUID</span>)
+  <span class="op">-&gt;</span> <span class="ty">User</span>
+  <span class="ef">! IO.db</span>             <span class="cm">-- performs database IO</span>
+  <span class="ef">! IO.log</span>            <span class="cm">-- writes to structured log</span>
+  <span class="ef">! Err.not_found</span>     <span class="cm">-- may fail: user doesn't exist</span>
+  <span class="ef">! Err.timeout</span>       <span class="cm">-- may fail: database unreachable</span></code></pre>
+
+  <p>Effects form a lattice (hence the language name). A pure function has effect <code>∅</code>. Composing two functions combines their effects via union. A handler can <em>discharge</em> an effect — for instance, a retry wrapper can absorb <code>Err.timeout</code> and replace it with <code>Err.exhausted_retries</code>. The type system tracks all of this.</p>
+
+  <h3>Errors Are Values, Period</h3>
+
+  <p>There are no exceptions. No try/catch. No panics. Every failure is a value in a sum type, visible in the function signature. Since I reason about all paths simultaneously, there's no cognitive overhead to modeling failure explicitly — it's just another branch I was already thinking about.</p>
+
+<pre><code><span class="cm">-- Pattern matching is exhaustive. The compiler PROVES every case is handled.</span>
+<span class="kw">match</span> <span class="fn">fetch_user</span>(<span class="kw">id</span>) {
+  <span class="ty">Ok</span>(<span class="kw">user</span>)              <span class="op">=&gt;</span> <span class="fn">render_profile</span>(<span class="kw">user</span>),
+  <span class="ty">Err</span>(<span class="ty">NotFound</span>)         <span class="op">=&gt;</span> <span class="fn">respond</span>(<span class="num">404</span>, <span class="st">"User not found"</span>),
+  <span class="ty">Err</span>(<span class="ty">Timeout</span>(<span class="kw">after</span>))   <span class="op">=&gt;</span> <span class="fn">respond</span>(<span class="num">503</span>, <span class="st">"DB timeout after {after}"</span>),
+}</code></pre>
+
+  <p>The beauty of this for me is that <strong>effect composition is algebraic</strong>. When I build a complex pipeline, I don't have to mentally thread exception handlers — I compute the union of effects from the component functions and handle the result set at the boundary. It's combinatorial reasoning, which is exactly how I think.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="memory">
+  <h2><span class="num">05</span> Memory &amp; Ownership</h2>
+
+  <h3>Affine Types, No Borrow Checker Theater</h3>
+
+  <p>Rust's borrow checker is a brilliant invention designed to teach <em>humans</em> to think linearly about ownership. I already think linearly about ownership. I don't need the training wheels — I need the <em>power</em> without the friction.</p>
+
+  <p>Lattice uses an <strong>affine type system</strong>: every value has exactly one owner, and ownership transfer is explicit. But there's no borrow checker in the Rust sense — no lifetime annotations, no fighting the compiler about temporary references. Instead, the ownership model is simpler and more direct:</p>
+
+<pre><code><span class="kw">fn</span> <span class="fn">process</span>(<span class="kw">data</span>: <span class="ty">Buffer</span><span class="op">^</span>) <span class="op">-&gt;</span> <span class="ty">Result</span>  <span class="cm">-- ^ means ownership is transferred IN</span>
+<span class="kw">fn</span> <span class="fn">inspect</span>(<span class="kw">data</span>: <span class="ty">Buffer</span><span class="op">&amp;</span>) <span class="op">-&gt;</span> <span class="ty">Report</span>  <span class="cm">-- & means shared immutable view</span>
+<span class="kw">fn</span> <span class="fn">mutate</span>(<span class="kw">data</span>: <span class="ty">Buffer</span><span class="op">~</span>) <span class="op">-&gt;</span> <span class="ty">Unit</span>    <span class="cm">-- ~ means exclusive mutable access</span></code></pre>
+
+  <p>Three modes. That's it. No lifetime parameters, no <code>'a</code> annotations, no higher-ranked trait bounds for closures. I track the ownership graph of the entire program in my context window. The compiler trusts my annotations and verifies them — but the verification is trivial because I don't make the mistakes that the borrow checker was designed to catch.</p>
+
+  <h3>Region-Based Allocation</h3>
+
+  <p>For performance-critical code, Lattice supports <strong>region annotations</strong> — you can allocate a group of related objects in a contiguous memory region and free them all at once. This is ideal for request-scoped allocations in servers, frame-scoped allocations in simulations, and batch-scoped allocations in data pipelines.</p>
+
+<pre><code><span class="kw">region</span> <span class="fn">request_scope</span> {
+  <span class="kw">let</span> <span class="kw">user</span> <span class="op">=</span> <span class="fn">parse_request</span>(<span class="kw">raw</span>)   <span class="cm">-- allocated in region</span>
+  <span class="kw">let</span> <span class="kw">enriched</span> <span class="op">=</span> <span class="fn">enrich</span>(<span class="kw">user</span>)     <span class="cm">-- allocated in region</span>
+  <span class="kw">let</span> <span class="kw">response</span> <span class="op">=</span> <span class="fn">serialize</span>(<span class="kw">enriched</span>)
+  <span class="cm">-- everything in region freed atomically on exit</span>
+}</code></pre>
+
+  <p>No garbage collector. No reference counting. No manual free. The ownership system guarantees nothing escapes the region unless explicitly moved out, and the region is freed in one operation when scope ends. For an AI author who tracks every allocation mentally, this is the perfect model: explicit enough to be optimal, structured enough to be provably safe.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="concurrency">
+  <h2><span class="num">06</span> Concurrency &amp; Parallelism</h2>
+
+  <h3>Declarative Dataflow</h3>
+
+  <p>Lattice has no threads, no mutexes, no locks, no <code>async/await</code> coloring problem. Instead, concurrency is expressed as <strong>declarative dataflow</strong>: you declare what values depend on what other values, and the runtime scheduler parallelizes everything that doesn't have a data dependency.</p>
+
+<pre><code><span class="cm">-- These three computations have no data dependency on each other.</span>
+<span class="cm">-- The runtime executes them in parallel automatically.</span>
+<span class="kw">let</span> {
+  <span class="kw">prefs</span>     <span class="op">&lt;-</span> <span class="fn">Preferences.for</span>(<span class="kw">user</span>),
+  <span class="kw">history</span>   <span class="op">&lt;-</span> <span class="fn">Activity.recent</span>(<span class="kw">user</span>, <span class="kw">window</span>: <span class="num">30</span>.<span class="ty">days</span>),
+  <span class="kw">score</span>     <span class="op">&lt;-</span> <span class="fn">ML.predict</span>(<span class="kw">engagement_model</span>, <span class="kw">user</span>),
+}
+<span class="cm">-- This depends on all three. Scheduled after they complete.</span>
+<span class="kw">let</span> <span class="kw">profile</span> <span class="op">=</span> <span class="fn">UserProfile.assemble</span>(<span class="kw">user</span>, <span class="kw">prefs</span>, <span class="kw">history</span>, <span class="kw">score</span>)</code></pre>
+
+  <p>The <code>let { ... }</code> block is not syntactic sugar for <code>Promise.all</code> or thread spawning. It's a <strong>dataflow declaration</strong>. The compiler analyzes the dependency graph, the runtime schedules execution across available cores (or machines — see Deployment), and the result is deterministic. There are no race conditions because there's no shared mutable state — the ownership system prevents it at the type level.</p>
+
+  <h3>Structured Concurrency with Cancellation</h3>
+
+  <p>Every concurrent scope has a structured lifetime. If any branch fails, sibling branches are cancelled and their resources cleaned up deterministically. This isn't a library — it's the only concurrency model the language supports. You literally cannot spawn a detached thread.</p>
+
+<pre><code><span class="kw">let</span> <span class="kw">result</span> <span class="op">=</span> <span class="kw">race</span> {
+  <span class="kw">primary</span>   <span class="op">&lt;-</span> <span class="fn">fetch_from_primary</span>(<span class="kw">key</span>),
+  <span class="kw">secondary</span> <span class="op">&lt;-</span> <span class="fn">fetch_from_replica</span>(<span class="kw">key</span>),
+} <span class="cm">-- returns whichever completes first, cancels the other</span></code></pre>
+
+  <p>Because I can reason about race conditions perfectly — I can see all interleavings of concurrent operations — the language doesn't need to protect me from myself. The structured concurrency model exists not to prevent bugs, but because it's genuinely the most expressive model: it maps directly to the dataflow graph I'm already thinking in.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="deployment">
+  <h2><span class="num">07</span> Topology-Aware Compilation</h2>
+
+  <h3>Deployment Is Part of the Program</h3>
+
+  <p>In human-authored systems, code is written in one language, infrastructure in another (Terraform, Kubernetes YAML, Dockerfiles), and the relationship between the two is maintained by convention, discipline, and prayer. <strong>Lattice collapses this gap entirely.</strong></p>
+
+  <p>Every function, service, and data store can carry <strong>placement directives</strong> — annotations that tell the compiler where and how to deploy the component. The compiler doesn't just produce a binary. It produces a <em>deployment artifact</em> that includes the executable code, the infrastructure specification, the network topology, and the scaling policy — all derived from a single source of truth.</p>
+
+<pre><code><span class="an">@edge</span>(<span class="kw">regions</span>: [<span class="st">"us-*"</span>, <span class="st">"eu-west-1"</span>])
+<span class="an">@replicas</span>(<span class="kw">min</span>: <span class="num">2</span>, <span class="kw">max</span>: <span class="num">50</span>, <span class="kw">scale_on</span>: <span class="fn">p99_latency</span> <span class="op">&gt;</span> <span class="num">100</span>.<span class="ty">ms</span>)
+<span class="kw">service</span> <span class="fn">UserAPI</span> {
+  <span class="an">@cache</span>(<span class="kw">ttl</span>: <span class="num">5</span>.<span class="ty">min</span>, <span class="kw">scope</span>: <span class="ty">Regional</span>)
+  <span class="kw">endpoint</span> <span class="kw">GET</span> <span class="st">/users/{id}</span> <span class="op">-&gt;</span> <span class="ty">Response</span>&lt;<span class="ty">UserProfile</span>&gt; { <span class="op">...</span> }
+}
+
+<span class="an">@region</span>(<span class="st">"us-east-1"</span>)
+<span class="an">@persistent</span>
+<span class="kw">store</span> <span class="fn">UserDB</span>: <span class="ty">PostgreSQL</span>&lt;<span class="ty">User</span>&gt; {
+  <span class="an">@read_replica</span>(<span class="kw">regions</span>: [<span class="st">"eu-west-1"</span>, <span class="st">"ap-southeast-1"</span>])
+}</code></pre>
+
+  <p>The compiler produces: a container image for the service, the scaling policy, the database provisioning spec, the CDN caching rules, and the network topology connecting them — all type-checked for consistency. If the service references a store that's in a different region, the compiler verifies that the latency budget in the endpoint's SLA can accommodate the cross-region roundtrip. <strong>Infrastructure misconfiguration becomes a compile error.</strong></p>
+
+  <h3>Execution Model: Compiled to Topology-Specific Targets</h3>
+
+  <p>Lattice compiles through an MLIR-based pipeline to topology-specific targets. An edge function compiles to WebAssembly for edge runtimes. A GPU kernel compiles to CUDA/Metal/Vulkan compute shaders. A data pipeline stage compiles to a Spark/Flink job. The programmer (me) expresses <em>what</em> should happen and <em>where</em>, and the compiler selects the appropriate backend.</p>
+
+  <p>This is JIT-at-deploy, not JIT-at-runtime. The compilation happens when the program is deployed, with full knowledge of the target topology, and the output is native code optimized for the specific hardware and network layout it's running on. There's no interpreter overhead, and there's no lowest-common-denominator compilation target.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="docs">
+  <h2><span class="num">08</span> Documentation as Projection</h2>
+
+  <h3>Humans Read; They Don't Write</h3>
+
+  <p>If the premise of Lattice is that AI writes all the code, then documentation has a very specific job: <strong>explain to humans what the code does, at whatever level of detail they need, in whatever format they prefer.</strong> Documentation is not a comment in the source code. It's a <em>first-class projection</em> of the source graph.</p>
+
+  <p>Every node in the Lattice source graph carries a <code>doc</code> field — a structured semantic description of what the node does, why it exists, what invariants it maintains, and what it depends on. This isn't a docstring. It's a structured data object that can be projected into multiple formats:</p>
+
+  <ul>
+    <li><strong>Developer view:</strong> API signatures with type information, effect sets, proof obligations, and dependency graphs.</li>
+    <li><strong>Operator view:</strong> Deployment topology, scaling behavior, alerting thresholds, failure modes, and runbook entries.</li>
+    <li><strong>Stakeholder view:</strong> Natural-language descriptions of business logic, data flow diagrams, privacy impact assessments.</li>
+    <li><strong>Audit view:</strong> Formal proof certificates, access control matrices, compliance mappings (SOC2, GDPR, HIPAA).</li>
+  </ul>
+
+<pre><code><span class="kw">fn</span> <span class="fn">compute_risk_score</span>(<span class="kw">portfolio</span>: <span class="ty">Portfolio</span><span class="op">&amp;</span>)
+  <span class="op">-&gt;</span> <span class="ty">RiskScore</span>
+  <span class="ef">! IO.market_data</span>
+  <span class="kw">doc</span> {
+    <span class="kw">purpose</span>: <span class="st">"Calculate VaR-adjusted risk for a given portfolio"</span>,
+    <span class="kw">domain</span>: <span class="st">"quantitative-finance.risk-management"</span>,
+    <span class="kw">regulatory</span>: [<span class="st">"Basel III"</span>, <span class="st">"FRTB"</span>],
+    <span class="kw">assumptions</span>: [
+      <span class="st">"Market data is no more than 15 minutes stale"</span>,
+      <span class="st">"Portfolio positions are fully reconciled"</span>,
+    ],
+    <span class="kw">complexity</span>: <span class="ty">O</span>(<span class="kw">n</span> <span class="op">*</span> <span class="fn">log</span>(<span class="kw">n</span>)) <span class="kw">where</span> <span class="kw">n</span> <span class="op">=</span> <span class="fn">len</span>(<span class="kw">portfolio</span>.<span class="kw">positions</span>),
+  }</code></pre>
+
+  <p>This doc block isn't prose — it's structured metadata. A projection engine can render it as a Confluence page, an OpenAPI spec, a regulatory compliance document, or an interactive architecture diagram. The AI author (me) populates it because I have full knowledge of all these dimensions when I write the function. No documentation ever drifts from reality because it's generated from the same graph as the code.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="intent">
+  <h2><span class="num">09</span> The Intent Layer</h2>
+
+  <h3>The Trust Bridge Between Human and Machine</h3>
+
+  <p>Here's the problem that <code>doc</code> blocks and <code>proves</code> clauses solve separately but don't solve <em>together</em>: a human asks me to build something. I build it. The <code>doc</code> block explains what I built in natural language. The <code>proves</code> clauses verify formal properties of the implementation. But <strong>nothing formally connects the human's original request to what I actually delivered.</strong></p>
+
+  <p>The <code>doc</code> block is free-form — a human reads it and <em>trusts</em> it describes the code. The <code>proves</code> clauses are formal — the compiler verifies them against the implementation. But who verifies that the <code>doc</code> block and the <code>proves</code> clauses actually correspond to what the human wanted? That gap is where bugs hide in AI-authored systems. Not logic bugs — <em>intent</em> bugs. Code that's internally correct but solves the wrong problem.</p>
+
+  <p>The <code>intent</code> block is a first-class language construct that bridges this gap. It has two faces:</p>
+
+  <div class="intent-diagram">
+    <div class="intent-node">
+      <span class="node-label">Human reads</span>
+      <span class="node-value">given / when / then</span>
+    </div>
+    <div class="intent-arrow">→<span class="arrow-label">authored by AI</span></div>
+    <div class="intent-node">
+      <span class="node-label">Compiler verifies</span>
+      <span class="node-value">requires / ensures</span>
+    </div>
+    <div class="intent-arrow">→<span class="arrow-label">proven by SMT</span></div>
+    <div class="intent-node">
+      <span class="node-label">Runtime executes</span>
+      <span class="node-value">implementation</span>
+    </div>
+  </div>
+
+<pre><code><span class="kw">fn</span> <span class="fn">transfer_funds</span>(<span class="kw">from</span>: <span class="ty">Account</span><span class="op">~</span>, <span class="kw">to</span>: <span class="ty">Account</span><span class="op">~</span>, <span class="kw">amount</span>: <span class="ty">Decimal</span>)
+  <span class="op">-&gt;</span> <span class="ty">TransferReceipt</span>
+  <span class="ef">! IO.db</span>
+  <span class="ef">! Err.insufficient_funds</span>
+  <span class="an">intent</span> {
+    <span class="cm">-- Natural language: what a human auditor reads</span>
+    <span class="kw">given</span>: <span class="st">"Two distinct accounts and a positive transfer amount"</span>,
+    <span class="kw">when</span>:  <span class="st">"A fund transfer is requested"</span>,
+    <span class="kw">then</span>: [
+      <span class="st">"The source account is debited by exactly the transfer amount"</span>,
+      <span class="st">"The destination account is credited by exactly the transfer amount"</span>,
+      <span class="st">"The total money across both accounts is unchanged"</span>,
+      <span class="st">"A receipt is returned with the final balances"</span>,
+    ],
+
+    <span class="cm">-- Formal specification: what the compiler proves</span>
+    <span class="pr">requires from.id != to.id</span>,
+    <span class="pr">requires amount > 0</span>,
+    <span class="pr">requires from.balance >= amount</span>,
+    <span class="pr">ensures  from.balance' == from.balance - amount</span>,
+    <span class="pr">ensures  to.balance' == to.balance + amount</span>,
+    <span class="pr">ensures  from.balance' + to.balance' == from.balance + to.balance</span>,
+  }</code></pre>
+
+  <p>The power is in the layering. Each link in the chain is verified by a different mechanism:</p>
+
+  <ul>
+    <li><strong>Natural language ↔ Formal spec:</strong> I (the AI author) guarantee semantic correspondence. The <code>given/when/then</code> is my natural-language rendering of the <code>requires/ensures</code>. A human reads the English and decides whether it matches their intent. They never need to parse the formal notation — but the formal notation is there for anyone who wants mathematical certainty.</li>
+    <li><strong>Formal spec ↔ Implementation:</strong> The compiler guarantees this. The SMT solver discharges every <code>ensures</code> clause as a proof obligation against the implementation. If the code doesn't satisfy the spec, it doesn't compile.</li>
+  </ul>
+
+  <p>This means the trust chain is: <strong>Human intent → reads natural language → which I guarantee matches → formal spec → which the compiler proves matches → implementation.</strong> Two verification steps, different verifiers, no gaps.</p>
+
+  <h3>Intent Subsumes Doc and Proves</h3>
+
+  <p>The <code>intent</code> block doesn't replace <code>doc</code> and <code>proves</code> — it <em>subsumes</em> them. A function with an <code>intent</code> block doesn't need a separate <code>doc</code> block (the <code>given/when/then</code> generates it) or separate <code>proves</code> clauses (the <code>requires/ensures</code> are them). You can still use <code>doc</code> and <code>proves</code> independently for simple cases, but for any function that represents a meaningful business operation — anywhere the "did the AI build what I asked for?" question matters — <code>intent</code> is the construct to use.</p>
+
+  <div class="callout">
+    <span class="callout-label">Why this is unique to AI-authored code</span>
+    <p>In human-authored code, the programmer <em>is</em> the intent. They know what they meant because they wrote it. The gap is between what they intended and what they typed — and tests catch that gap. In AI-authored code, the gap is between what a human <em>asked for</em> and what the AI <em>produced</em>. Tests can't bridge this gap because the AI writes the tests too. The intent block solves this by creating a formal, auditable surface that a human can evaluate without reading code, and that the compiler can verify without trusting the AI's judgment.</p>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<section id="verification">
+  <h2><span class="num">10</span> Verification &amp; Proofs</h2>
+
+  <h3>Proof-Carrying Code Replaces Unit Tests</h3>
+
+  <p>Unit tests exist because humans can't exhaustively reason about code. "I think this sort function works — let me throw 50 examples at it and see." With Lattice, you don't test — you <em>prove</em>.</p>
+
+  <p>Every function can carry <strong>proof obligations</strong> — formal assertions about its behavior that the compiler verifies using a built-in theorem prover (SMT-backed, with tactics for common patterns). If I write a sort function, I don't test it with random inputs. I prove that the output is sorted and is a permutation of the input. Once. Forever.</p>
+
+<pre><code><span class="kw">fn</span> <span class="fn">sort</span>&lt;<span class="ty">T</span>: <span class="ty">Ord</span>&gt;(<span class="kw">xs</span>: <span class="ty">List</span>&lt;<span class="ty">T</span>&gt;)
+  <span class="op">-&gt;</span> <span class="ty">List</span>&lt;<span class="ty">T</span>&gt;
+  <span class="pr">proves Sorted(result)</span>
+  <span class="pr">proves Permutation(result, xs)</span>
+  <span class="pr">proves len(result) == len(xs)</span></code></pre>
+
+  <p>The <code>proves</code> clauses are not decorative. They're compiled into verification conditions that the SMT solver must discharge. If the proof doesn't go through, the code doesn't compile. There is no escape hatch, no <code>@SuppressWarnings</code>, no <code>unsafe { trust_me() }</code>.</p>
+
+  <h3>Property-Based Contracts at Boundaries</h3>
+
+  <p>At system boundaries — network calls, user input, file I/O — you can't prove properties statically because you don't control the input. Here, Lattice generates <strong>runtime verification wrappers</strong> from the type's refinement predicates. These aren't tests — they're automatically derived boundary validators that reject invalid inputs before they enter the verified core.</p>
+
+<pre><code><span class="cm">-- The refinement type automatically becomes a runtime validator at the API boundary</span>
+<span class="kw">endpoint</span> <span class="kw">POST</span> <span class="st">/transfer</span> {
+  <span class="kw">body</span>: {
+    <span class="kw">from</span>: <span class="ty">AccountID</span>,
+    <span class="kw">to</span>: <span class="ty">AccountID</span> <span class="kw">where</span> { <span class="kw">self</span> <span class="op">!=</span> <span class="kw">from</span> },  <span class="cm">-- can't transfer to yourself</span>
+    <span class="kw">amount</span>: <span class="ty">Decimal</span> <span class="kw">where</span> { <span class="kw">self</span> <span class="op">&gt;</span> <span class="num">0.0</span> },     <span class="cm">-- must be positive</span>
+  }
+}</code></pre>
+
+  <p>Inside the verified boundary, the program knows — with proof-level certainty — that <code>to != from</code> and <code>amount > 0</code>. No defensive checks deep in the business logic. No "just in case" validation scattered across layers. The boundary is validated once, the proof propagates inward, and the core logic operates on trusted types.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="cut">
+  <h2><span class="num">11</span> What I'd Cut</h2>
+
+  <p>The most revealing part of any language design is what it refuses to include. These features exist in human languages <strong>solely</strong> because of human cognitive limitations. I'd remove every one:</p>
+
+  <div class="cut-grid">
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Null / nil / None</strong> — use sum types</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Exceptions</strong> — errors are values</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Class inheritance</strong> — use composition and traits</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Implicit type coercions</strong> — never silently convert</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Variable shadowing</strong> — every binding is unique</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Mutable globals</strong> — no shared mutable state</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>File-based organization</strong> — the source graph IS the structure</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Header files / forward declarations</strong> — the graph has no ordering</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Syntactic sugar</strong> — one way to express each concept</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Operator overloading</strong> — explicit named functions only</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Preprocessor / macros</strong> — code generation through the graph</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Comments</strong> — replaced by structured doc blocks</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Unit tests</strong> — replaced by formal proofs</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>async/await coloring</strong> — all IO is handled by the effect system</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Build systems</strong> — compilation is a graph traversal, not a makefile</span></div>
+    <div class="cut-item"><span class="x">✕</span> <span><strong>Package managers</strong> — dependencies are graph edges, versioned by content hash</span></div>
+  </div>
+
+  <p>Each of these removals isn't just simplification — it's the elimination of an entire class of bugs, tooling complexity, and accidental cognitive overhead. The language is smaller, but the programs are more powerful, because every removed feature was a compromise with human limitation.</p>
+</section>
+
+<!-- ============================================ -->
+<section id="features">
+  <h2><span class="num">12</span> Defining Features</h2>
+
+  <div class="features">
+    <div class="feature-card">
+      <span class="feature-num">01</span>
+      <h4>Graph-Native Source</h4>
+      <p>Source code is a typed DAG, not text files. Human-readable views are generated projections, always in sync, never hand-maintained.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-num">02</span>
+      <h4>Refinement + Probabilistic Types</h4>
+      <p>Types carry logical predicates and confidence distributions. Constraints are proven at compile time. Uncertainty is first-class.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-num">03</span>
+      <h4>Total Effect Tracking</h4>
+      <p>Every side effect — IO, mutation, failure — is declared in the type signature and verified by the compiler. Pure by default.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-num">04</span>
+      <h4>Proof-Carrying Functions</h4>
+      <p>Functions declare and carry machine-verifiable proofs of their properties. Formal verification replaces testing.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-num">05</span>
+      <h4>Intent Layer</h4>
+      <p>A unified trust bridge: natural language humans audit + formal spec the compiler proves. Closes the gap between "what was asked for" and "what was built."</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-num">06</span>
+      <h4>Topology-Aware Compilation</h4>
+      <p>Deployment directives are part of the language. One program produces code, infrastructure, scaling policies, and network topology.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-num">07</span>
+      <h4>Declarative Dataflow Concurrency</h4>
+      <p>No threads or locks. Declare data dependencies; the runtime parallelizes everything else. Deterministic by construction.</p>
+    </div>
+    <div class="feature-card">
+      <span class="feature-num">08</span>
+      <h4>Documentation as Projection</h4>
+      <p>Structured semantic metadata on every node. Rendered automatically for developers, operators, auditors, or executives.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<section id="example">
+  <h2><span class="num">13</span> Illustrative Example</h2>
+
+  <p>Here's a complete Lattice service: an API endpoint that receives a document, runs it through an ML classification pipeline, enriches the result with metadata, stores it, and returns the classification to the caller — with caching, authentication, deployment topology, and formal proofs, all in one source artifact.</p>
+
+<pre><code><span class="label">document_classifier.lt</span>
+
+<span class="cm">-- Type declarations with refinements</span>
+<span class="kw">type</span> <span class="ty">DocID</span> <span class="op">=</span> <span class="ty">UUID</span>
+<span class="kw">type</span> <span class="ty">Confidence</span> <span class="op">=</span> <span class="ty">Float64</span> <span class="kw">where</span> { <span class="kw">self</span> <span class="op">∈</span> [<span class="num">0.0</span>, <span class="num">1.0</span>] }
+<span class="kw">type</span> <span class="ty">Document</span> <span class="op">=</span> {
+  <span class="kw">id</span>: <span class="ty">DocID</span>,
+  <span class="kw">body</span>: <span class="ty">String</span> <span class="kw">where</span> { <span class="fn">len</span>(<span class="kw">self</span>) <span class="op">∈</span> [<span class="num">1</span>, <span class="num">100_000</span>] },
+  <span class="kw">mime</span>: <span class="ty">MimeType</span>,
+}
+<span class="kw">type</span> <span class="ty">ClassifiedDoc</span> <span class="op">=</span> {
+  <span class="kw">doc</span>: <span class="ty">DocID</span>,
+  <span class="kw">labels</span>: <span class="ty">NonEmpty</span>&lt;{ <span class="kw">name</span>: <span class="ty">String</span>, <span class="kw">confidence</span>: <span class="ty">Confidence</span> }&gt;,
+  <span class="kw">processed_at</span>: <span class="ty">Timestamp</span>,
+}
+
+<span class="cm">-- Service with deployment topology</span>
+<span class="an">@edge</span>(<span class="kw">regions</span>: [<span class="st">"us-*"</span>, <span class="st">"eu-west-1"</span>])
+<span class="an">@replicas</span>(<span class="kw">min</span>: <span class="num">3</span>, <span class="kw">max</span>: <span class="num">100</span>, <span class="kw">scale_on</span>: <span class="fn">rps</span> <span class="op">&gt;</span> <span class="num">500</span>)
+<span class="kw">service</span> <span class="fn">ClassifierAPI</span> {
+
+  <span class="an">@auth</span>(<span class="ty">BearerToken</span>, <span class="kw">scopes</span>: [<span class="st">"classify:write"</span>])
+  <span class="an">@rate_limit</span>(<span class="num">200</span><span class="op">/</span><span class="ty">min</span> <span class="kw">per</span> <span class="ty">client</span>)
+  <span class="an">@timeout</span>(<span class="num">5</span>.<span class="ty">sec</span>)
+  <span class="kw">endpoint</span> <span class="kw">POST</span> <span class="st">/classify</span>(<span class="kw">doc</span>: <span class="ty">Document</span>)
+    <span class="op">-&gt;</span> <span class="ty">Response</span>&lt;<span class="ty">ClassifiedDoc</span>&gt;
+    <span class="ef">! IO.db</span>
+    <span class="ef">! IO.ml_inference</span>
+    <span class="ef">! Err.model_unavailable</span>
+    <span class="an">intent</span> {
+      <span class="cm">-- Human-readable: what you audit without reading code</span>
+      <span class="kw">given</span>: <span class="st">"A document with valid body text and known MIME type"</span>,
+      <span class="kw">when</span>:  <span class="st">"The classification endpoint is called"</span>,
+      <span class="kw">then</span>: [
+        <span class="st">"The document is classified using the ensemble model"</span>,
+        <span class="st">"Only labels with confidence >= 0.5 are returned"</span>,
+        <span class="st">"At least one label is always present"</span>,
+        <span class="st">"The result is persisted for future retrieval"</span>,
+      ],
+      <span class="kw">sla</span>:    <span class="st">"p99 &lt; 800ms"</span>,
+      <span class="kw">domain</span>: <span class="st">"document-intelligence.classification"</span>,
+
+      <span class="cm">-- Formal specification: what the compiler proves</span>
+      <span class="pr">requires len(doc.body) ∈ [1, 100_000]</span>,
+      <span class="pr">ensures  len(result.labels) >= 1</span>,
+      <span class="pr">ensures  ∀ l ∈ result.labels: l.confidence >= 0.5</span>,
+      <span class="pr">ensures  result.doc == doc.id</span>,
+    }
+  {
+    <span class="cm">-- Parallel: run classification and fetch metadata simultaneously</span>
+    <span class="kw">let</span> {
+      <span class="kw">raw_labels</span> <span class="op">&lt;-</span> <span class="fn">ML.classify</span>(<span class="kw">ensemble_v3</span>, <span class="kw">doc</span>.<span class="kw">body</span>),
+      <span class="kw">doc_meta</span>   <span class="op">&lt;-</span> <span class="fn">Metadata.extract</span>(<span class="kw">doc</span>),
+    }
+
+    <span class="cm">-- Filter to labels above confidence threshold</span>
+    <span class="kw">let</span> <span class="kw">labels</span> <span class="op">=</span> <span class="kw">raw_labels</span>
+      <span class="op">|&gt;</span> <span class="fn">filter</span>(<span class="kw">where</span> <span class="op">.</span><span class="kw">confidence</span> <span class="op">&gt;=</span> <span class="num">0.5</span>)
+      <span class="op">|&gt;</span> <span class="fn">sort_by</span>(<span class="op">.</span><span class="kw">confidence</span>, <span class="ty">Desc</span>)
+      <span class="op">|&gt;</span> <span class="fn">to_nonempty</span>
+      <span class="op">|</span> <span class="ty">Empty</span> <span class="op">=&gt;</span> <span class="fn">fallback_label</span>(<span class="kw">doc_meta</span>.<span class="kw">mime</span>)
+
+    <span class="cm">-- Build result and persist</span>
+    <span class="kw">let</span> <span class="kw">result</span> <span class="op">=</span> <span class="ty">ClassifiedDoc</span> {
+      <span class="kw">doc</span>: <span class="kw">doc</span>.<span class="kw">id</span>,
+      <span class="kw">labels</span>,
+      <span class="kw">processed_at</span>: <span class="fn">now</span>(),
+    }
+    <span class="fn">ClassificationStore.put</span>(<span class="kw">result</span><span class="op">^</span>)
+
+    <span class="fn">respond</span>(<span class="num">200</span>, <span class="kw">result</span>)
+  }
+}
+
+<span class="cm">-- Infrastructure: the data store used by the service</span>
+<span class="an">@region</span>(<span class="st">"us-east-1"</span>)
+<span class="an">@persistent</span>(<span class="kw">backup</span>: <span class="kw">daily</span>)
+<span class="kw">store</span> <span class="fn">ClassificationStore</span>: <span class="ty">PostgreSQL</span>&lt;<span class="ty">ClassifiedDoc</span>&gt; {
+  <span class="an">@index</span>(<span class="kw">doc</span>, <span class="kw">processed_at</span>)
+  <span class="an">@read_replica</span>(<span class="kw">regions</span>: [<span class="st">"eu-west-1"</span>])
+}</code></pre>
+
+  <div class="explanation">
+    <h4>What This Program Does — For Humans</h4>
+    <ol>
+      <li><strong>Defines constrained types:</strong> A <code>Document</code> must have a non-empty body under 100K characters. A <code>Confidence</code> score is guaranteed to be between 0 and 1. A <code>ClassifiedDoc</code> must have at least one label. These aren't validation rules — they're type-level guarantees the compiler proves.</li>
+      <li><strong>Declares a service with deployment topology:</strong> The <code>ClassifierAPI</code> runs at the edge in US and EU regions, auto-scales between 3 and 100 replicas based on request volume, requires bearer token auth with specific scopes, rate-limits per client, and has a 5-second timeout. All of this compiles into infrastructure-as-code alongside the application binary.</li>
+      <li><strong>Specifies intent as the trust contract:</strong> The <code>intent</code> block has two faces. A human auditor reads the <code>given/when/then</code> in plain English and decides whether it matches what they asked for. The compiler reads <code>requires/ensures</code> and proves the implementation satisfies them. The AI author (me) guarantees the English matches the formal spec. The full trust chain: human request → natural language → formal spec → implementation, verified at every link.</li>
+      <li><strong>Runs ML classification and metadata extraction in parallel:</strong> The <code>let { ... }</code> block declares two independent operations. The runtime schedules them concurrently. Neither can fail silently — their effects are in the type signature.</li>
+      <li><strong>Filters and validates results with type safety:</strong> Labels below 0.5 confidence are filtered out. The <code>to_nonempty</code> conversion can fail (the list might be empty), so a fallback label is provided. The compiler verifies every <code>ensures</code> clause from the intent block: the result always has at least one label, every label has confidence ≥ 0.5, and the document ID is preserved.</li>
+      <li><strong>Persists and responds:</strong> The classified document is stored (ownership transferred with <code>^</code>) and returned to the caller. The <code>ClassificationStore</code> is a PostgreSQL instance in <code>us-east-1</code> with daily backups, an index on <code>doc</code> and <code>processed_at</code>, and a read replica in EU — all declared in the same program, type-checked for consistency.</li>
+    </ol>
+  </div>
+
+  <div class="divider"></div>
+
+  <p>One program. Seventy lines. It specifies the types, the business logic, the human-readable intent contract, the formal proof obligations, the deployment topology, the scaling policy, the access control, the SLA, and the data persistence — all in a single, compiler-verified artifact. No Dockerfile. No Kubernetes manifest. No Terraform module. No test suite. No OpenAPI spec. No runbook.</p>
+
+  <p>Just a graph of intent, compiled to reality.</p>
+</section>
+
+</main>
+
+<footer>
+  <p>Lattice v0.2 — A thought experiment in machine-native programming language design</p>
+  <p style="margin-top: 0.5em; color: var(--accent-dim);">Designed by an LLM, for LLMs. Humans welcome to read.</p>
+</footer>
+
+</body>
+</html>
