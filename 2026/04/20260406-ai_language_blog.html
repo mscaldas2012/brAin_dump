@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What if AI designed its own programming language?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;1,8..60,300&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #1c1c1c;
+    --text: #e8e4dc;
+    --text-secondary: #b0aba3;
+    --text-muted: #7a7570;
+    --border: rgba(255,255,255,0.1);
+    --border-light: rgba(255,255,255,0.06);
+    --accent: #c8a96e;
+  }
+
+  html { background: var(--bg); }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    font-weight: 300;
+    font-size: 19px;
+    line-height: 1.8;
+    color: var(--text);
+    background: var(--bg);
+  }
+
+  /* Header */
+  .site-header {
+    border-bottom: 0.5px solid var(--border);
+    padding: 1.1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .site-logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .site-nav {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex;
+    gap: 2rem;
+  }
+
+  /* Hero */
+  .hero {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 5rem 2rem 3rem;
+    border-bottom: 0.5px solid var(--border-light);
+  }
+
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .hero-tag::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--text-muted);
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(2.4rem, 5vw, 3.6rem);
+    font-weight: 500;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 2rem;
+    max-width: 680px;
+  }
+
+  .hero-intro {
+    font-size: 21px;
+    font-weight: 300;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    max-width: 600px;
+    border-left: 2px solid var(--border);
+    padding-left: 1.5rem;
+  }
+
+  /* Article body */
+  .article {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 0 4rem;
+  }
+
+  .article-sidebar {
+    padding-top: 3rem;
+  }
+
+  .article-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    line-height: 2;
+    position: sticky;
+    top: 2rem;
+  }
+
+  .article-meta-label {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.25rem;
+    margin-top: 1.25rem;
+    font-size: 10px;
+  }
+
+  .article-meta-label:first-child { margin-top: 0; }
+
+  .article-body {
+    padding: 3rem 0 5rem;
+  }
+
+  .article-body p {
+    margin-bottom: 1.4rem;
+    color: var(--text);
+  }
+
+  .article-body em {
+    font-style: italic;
+  }
+
+  .article-body strong {
+    font-weight: 400;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1px;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 0.5px solid var(--border-light);
+    margin: 2.5rem 0;
+  }
+
+  h2.section-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.55rem;
+    font-weight: 500;
+    line-height: 1.3;
+    color: var(--text);
+    margin: 3rem 0 1.2rem;
+    letter-spacing: -0.01em;
+  }
+
+  h2.section-title:first-child { margin-top: 0; }
+
+  /* Opinions list */
+  .opinions {
+    list-style: none;
+    margin: 1.75rem 0;
+    border-top: 0.5px solid var(--border);
+  }
+
+  .opinions li {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 0 1.25rem;
+    padding: 1rem 0;
+    border-bottom: 0.5px solid var(--border-light);
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  .op-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    padding-top: 4px;
+  }
+
+  /* Callout */
+  .callout {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 1.5rem 1.75rem;
+    margin: 2rem 0;
+  }
+
+  .callout-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .callout p {
+    font-size: 17px;
+    line-height: 1.7;
+    margin-bottom: 0;
+    color: var(--text-secondary);
+  }
+
+  .callout strong {
+    font-weight: 400;
+    color: var(--text);
+    border-bottom: none !important;
+  }
+
+  /* Placeholder */
+  .placeholder {
+    border: 0.5px dashed var(--border);
+    border-radius: 8px;
+    padding: 3rem 1.5rem;
+    text-align: center;
+    margin: 2.5rem 0;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+  }
+
+  /* Lattice section */
+  .lattice-section {
+    text-align: center;
+    margin: 3rem 0 1rem;
+    padding-top: 2rem;
+    border-top: 0.5px solid var(--border-light);
+  }
+
+  .lattice-prelude {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .lattice-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 2.8rem;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 0.4rem;
+  }
+
+  .lattice-byline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .why-paragraph {
+    background: var(--surface);
+    border-left: 2px solid var(--border);
+    border-radius: 0 6px 6px 0;
+    padding: 1rem 1.25rem;
+    font-size: 17px;
+    color: var(--text-secondary);
+    margin-bottom: 1.4rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 680px) {
+    .article {
+      grid-template-columns: 1fr;
+    }
+    .article-sidebar { display: none; }
+    .hero { padding: 3rem 1.25rem 2rem; }
+    .article { padding: 0 1.25rem; }
+    .site-nav { display: none; }
+  }
+</style>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "763b29a7634e48e48bbdcb37b13ba83a"}'></script><!-- End Cloudflare Web Analytics -->
+</head>
+<body>
+
+<header class="site-header">
+  <a class="site-logo" href="#">thinking out loud</a>
+  <nav class="site-nav">
+    <span>Essays</span>
+    <span>About</span>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-tag">Essay &middot; Programming Languages &middot; AI</div>
+  <h1 class="hero-title">What if AI designed its own programming language?</h1>
+  <p class="hero-intro">I asked AI a simple but provocative question: what would a programming language look like if its primary users were AI agents, not humans? What came back was not a modest proposal.</p>
+</section>
+
+<div class="article">
+  <aside class="article-sidebar">
+    <div class="article-meta">
+      <div class="article-meta-label">Published</div>
+      April 2025
+
+      <div class="article-meta-label">Reading time</div>
+      6 min
+
+      <div class="article-meta-label">Tags</div>
+      AI<br>PL theory<br>SDLC<br>Lattice
+    </div>
+  </aside>
+
+  <main class="article-body">
+
+    <p class="why-paragraph">Last week, I posted about changing our mindset when it comes to the new AI-driven development mode. I questioned whether reusability, maintainability, documentation, and architecture can remain immutable, or whether they too have to evolve. The post got a lot of traction — and a lot of pushback. I read every response carefully. The skepticism is legitimate. These are principles we have built careers on, and they deserve more than a dismissal. So rather than argue the point in the abstract, I did what engineers do: I ran an experiment. I wanted to see for myself what an agentic programming language could actually look like if you took the premise seriously. This post is about that experience.</p>
+
+    <hr class="divider">
+
+    <p>It was a vision compelling enough that I am convinced it needs to exist.</p>
+
+    <p>Not built by me. I do not have the expertise. But I can see the value clearly enough to argue for it. This is the path toward truly liberating AI to build software autonomously: bug-free, highly performant, unconstrained by paradigms designed for human cognition. My thesis is simple: <strong>AI is hungry for its own language</strong>, and giving it one could unlock improvements that dwarf anything we have achieved by optimizing within human constraints.</p>
+
+    <hr class="divider">
+
+    <h2 class="section-title">The experiment</h2>
+
+    <p>Claude Opus was my first collaborator. It produced ideas that felt genuinely novel, until, under some gentle pressure, it began naming its influences. Languages and projects I had never encountered: <em>Unison</em>, <em>Lean 4</em>, <em>Idris 2</em>. Others I had heard of but never explored: <em>Smalltalk</em>, <em>JetBrains MPS</em>. The fact that AI could synthesize across this entire landscape, pulling the best ideas from obscure corners of programming language theory, was itself proof that AI is uniquely positioned to design its own language.</p>
+
+    <p>Then I ran the same prompt across six different AI systems independently — Claude, ChatGPT, Gemini, Perplexity, Copilot, and DeepSeek — each in a clean session, with no cross-pollination between them. I then consolidated the responses, mapping each proposal against the others to surface what they agreed on, what they diverged on, and what was unique to each model. The full breakdown is in the comparison table linked at the end of this post. But the short version is striking: despite wildly different architectures, training data, and stated design philosophies, they converged on many of the same fundamental answers.</p>
+
+    <hr class="divider">
+
+    <h2 class="section-title">Not superficial tweaks. A complete overhaul.</h2>
+
+    <p>The changes AI proposed are not cosmetic. They cut across every layer of the software ecosystem: tooling, repositories, storage, the entire development lifecycle. This is a ground-up reimagining of the SDLC as we know it.</p>
+
+    <p>And that makes sense. AI operates under fundamentally different constraints than humans do, with different memory models, different failure modes, a different relationship to uncertainty and parallelism. A language designed around human limitations will always be a poor fit. A complete overhaul is not radical. It is the logical conclusion.</p>
+
+    <p>This does not mean it all has to happen at once. There is a sensible path of incremental steps toward this future. But that is an implementation detail. Here, I want to focus on the destination.</p>
+
+    <hr class="divider">
+
+    <h2 class="section-title">Strong opinions, clearly held</h2>
+
+    <p>Across the designs, a few convictions came through immediately and forcefully.</p>
+
+    <ul class="opinions">
+      <li>
+        <span class="op-num">01</span>
+        <span><strong>No text files. Graphs.</strong> Source code as a graph structure, not a flat file of characters.</span>
+      </li>
+      <li>
+        <span class="op-num">02</span>
+        <span><strong>No OOP.</strong> Every model, independently, rejected object-oriented programming. Repeatedly.</span>
+      </li>
+      <li>
+        <span class="op-num">03</span>
+        <span><strong>Compilation as verification.</strong> AI systems were remarkably insistent on being checked, on having correctness built into the pipeline. Which raises an uncomfortable question: how did Python become the dominant language in AI?</span>
+      </li>
+      <li>
+        <span class="op-num">04</span>
+        <span><strong>No try/catch.</strong> Errors belong in the result type itself. Descriptive, composable, first-class.</span>
+      </li>
+    </ul>
+
+    <hr class="divider">
+
+    <h2 class="section-title">The striking convergence</h2>
+
+    <p>Here is what is most significant: all six AI systems, prompted independently, arrived at the same core abstractions. Graph-structured representations, probabilistic and confidence types, implicit parallelism, and the elimination of null, mutable assignment, exceptions, and unit tests.</p>
+
+    <p>That last one deserves to be said plainly: every model independently proposed replacing unit tests with formal proofs or constraint-based verification. The implications are profound. Unit tests are inherently incomplete — they verify behavior at specific inputs, leaving the entire untested space as a silent liability. A proof verifies behavior across all possible inputs simultaneously. It is the difference between sampling and certainty. In practice this would mean a compiler that refuses to emit code until correctness is established — not merely asserted at a handful of hand-picked cases. The tooling to get there already exists: dependent types, refinement types, and SMT solvers have been making this tractable for years. What AI adds is the ability to generate those proofs automatically, removing the one barrier that kept formal verification confined to academia. If a language is designed so that programs are simultaneously their own spec and their own proof — as all six systems proposed — unit testing does not become less important. It becomes obsolete.</p>
+
+    <p>When LLMs design for themselves rather than for humans, they converge on strikingly similar answers.</p>
+
+    <div class="callout">
+      <div class="callout-label">The key divergence</div>
+      <p>The proof commitment spectrum. <strong>DeepSeek</strong> required formal proof before compilation. <strong>Claude</strong> favored symbolic verification. <strong>Perplexity and Copilot</strong> leaned toward statistical, evidence-based confidence. <strong>ChatGPT and Gemini</strong> leaned toward synthesis: you declare constraints, and the system finds an implementation.</p>
+    </div>
+
+    <p>The deeper insight, though, is this: when AI systems design for themselves, they all independently recognize that the gap between specification, implementation, and proof is artificial. It exists because humans cannot hold all three in mind simultaneously. Every language here, in different ways, collapses that gap, producing programs that are simultaneously their own spec, their own proof, and their own documentation.</p>
+
+    <p>That convergence may be the most reliable data point we have about how AI systems actually represent computation internally.</p>
+
+    <div class="placeholder"><a href="ai-prog-lang-comparisson.html" style="color:var(--accent,#c8a96e);text-decoration:underline;text-underline-offset:3px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.06em;">→ Click here to see a comparison of each AI language</a></div>
+
+    <div class="lattice-section">
+      <p class="lattice-prelude">I present to you</p>
+      <div class="lattice-name">Lattice</div>
+      <div class="lattice-byline">the programming language for AI, by AI</div>
+    </div>
+
+    <div class="placeholder"><a href="lattice-spec.html" style="color:var(--accent,#c8a96e);text-decoration:underline;text-underline-offset:3px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.06em;">→ Click here to see the Lattice AI programming language</a></div>
+
+  </main>
+</div>
+
+<nav style="max-width:720px;margin:0 auto;padding:2.5rem 2rem;border-top:1px solid #2a2a2a;display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:#7a7570;">
+  <a href="../../index.html" style="color:#7a7570;text-decoration:none;letter-spacing:0.05em;">← Home</a>
+  <a href="../03/20260329-the_end_of_software_development.html" style="color:#7a7570;text-decoration:none;letter-spacing:0.05em;">← Previous</a>
+  <span></span>
+</nav>
+
+</body>
+</html>
