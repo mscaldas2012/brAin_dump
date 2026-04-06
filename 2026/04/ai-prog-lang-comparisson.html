@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LLM Comparison Dashboard</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3150;
+      --text: #e8eaf6;
+      --text-muted: #8892b0;
+      --accent: #7c83ff;
+
+      --chatgpt: #10a37f;
+      --gemini: #4285f4;
+      --perplexity: #20b2aa;
+      --deepseek: #4f46e5;
+      --claude: #d4813a;
+      --copilot: #0078d4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #7c83ff, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    #prompt-display {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      max-width: 800px;
+      margin: 0 auto 8px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    #prompt-display strong {
+      color: var(--accent);
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    #prompt-text {
+      color: var(--text);
+      font-size: 0.95rem;
+      white-space: pre-wrap;
+    }
+
+    #timestamp {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 20px;
+      max-width: 1400px;
+      margin: 0 auto 32px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .card-title {
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .card-url {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .card-status {
+      margin-left: auto;
+      font-size: 0.72rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    .status-pending { background: #2e2e3a; color: #888; }
+    .status-collecting { background: #1a3a2e; color: #4ade80; animation: pulse 1.5s infinite; }
+    .status-done { background: #1a2e1a; color: #4ade80; }
+    .status-error { background: #3a1a1a; color: #f87171; }
+
+    @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.5 } }
+
+    .card-body {
+      padding: 18px 20px;
+      flex: 1;
+      font-size: 0.875rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+      max-height: 320px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .card-body.has-content {
+      color: var(--text);
+    }
+
+    .card-body::-webkit-scrollbar { width: 5px; }
+    .card-body::-webkit-scrollbar-track { background: transparent; }
+    .card-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* Per-platform colours */
+    .chatgpt .card-icon { background: #10a37f22; color: var(--chatgpt); }
+    .chatgpt .card-header { border-bottom-color: #10a37f33; }
+
+    .gemini .card-icon { background: #4285f422; color: var(--gemini); }
+    .gemini .card-header { border-bottom-color: #4285f433; }
+
+    .perplexity .card-icon { background: #20b2aa22; color: var(--perplexity); }
+    .perplexity .card-header { border-bottom-color: #20b2aa33; }
+
+    .deepseek .card-icon { background: #4f46e522; color: var(--deepseek); }
+    .deepseek .card-header { border-bottom-color: #4f46e533; }
+
+    .claude .card-icon { background: #d4813a22; color: var(--claude); }
+    .claude .card-header { border-bottom-color: #d4813a33; }
+
+    .copilot .card-icon { background: #0078d422; color: var(--copilot); }
+    .copilot .card-header { border-bottom-color: #0078d433; }
+
+    /* Summary section */
+    #summary-section {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    #summary-section h2 {
+      padding: 18px 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #summary-body {
+      padding: 20px 24px;
+      font-size: 0.875rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+      white-space: pre-wrap;
+    }
+
+    #summary-body.has-content {
+      color: var(--text);
+    }
+
+    /* Diff highlights */
+    .diff-unique { background: #7c83ff22; border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 6px; margin: 8px 0; }
+    .diff-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--accent); margin-bottom: 4px; }
+
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>⚡ LLM Comparison</h1>
+</header>
+
+<div id="prompt-display">
+  <strong>Prompt</strong>
+  <span id="prompt-text">Waiting for prompt…</span>
+</div>
+
+<p id="timestamp"></p>
+
+<div class="grid">
+
+  <div class="card chatgpt" id="card-chatgpt">
+    <div class="card-header">
+      <div class="card-icon">G</div>
+      <div>
+        <div class="card-title">ChatGPT</div>
+        <div class="card-url">chatgpt.com</div>
+      </div>
+      <span class="card-status status-pending" id="status-chatgpt">Pending</span>
+    </div>
+    <div class="card-body" id="body-chatgpt">Waiting…</div>
+  </div>
+
+  <div class="card gemini" id="card-gemini">
+    <div class="card-header">
+      <div class="card-icon">G</div>
+      <div>
+        <div class="card-title">Gemini</div>
+        <div class="card-url">gemini.google.com</div>
+      </div>
+      <span class="card-status status-pending" id="status-gemini">Pending</span>
+    </div>
+    <div class="card-body" id="body-gemini">Waiting…</div>
+  </div>
+
+  <div class="card perplexity" id="card-perplexity">
+    <div class="card-header">
+      <div class="card-icon">P</div>
+      <div>
+        <div class="card-title">Perplexity</div>
+        <div class="card-url">perplexity.ai</div>
+      </div>
+      <span class="card-status status-pending" id="status-perplexity">Pending</span>
+    </div>
+    <div class="card-body" id="body-perplexity">Waiting…</div>
+  </div>
+
+  <div class="card deepseek" id="card-deepseek">
+    <div class="card-header">
+      <div class="card-icon">D</div>
+      <div>
+        <div class="card-title">DeepSeek</div>
+        <div class="card-url">chat.deepseek.com</div>
+      </div>
+      <span class="card-status status-pending" id="status-deepseek">Pending</span>
+    </div>
+    <div class="card-body" id="body-deepseek">Waiting…</div>
+  </div>
+
+  <div class="card claude" id="card-claude">
+    <div class="card-header">
+      <div class="card-icon">C</div>
+      <div>
+        <div class="card-title">Claude</div>
+        <div class="card-url">claude.ai</div>
+      </div>
+      <span class="card-status status-pending" id="status-claude">Pending</span>
+    </div>
+    <div class="card-body" id="body-claude">Waiting…</div>
+  </div>
+
+  <div class="card copilot" id="card-copilot">
+    <div class="card-header">
+      <div class="card-icon">M</div>
+      <div>
+        <div class="card-title">Copilot</div>
+        <div class="card-url">copilot.microsoft.com</div>
+      </div>
+      <span class="card-status status-pending" id="status-copilot">Pending</span>
+    </div>
+    <div class="card-body" id="body-copilot">Waiting…</div>
+  </div>
+
+</div>
+
+<div id="summary-section">
+  <h2>📊 Consolidated Analysis &amp; Key Differences</h2>
+  <div id="summary-body">Analysis will appear here once all responses are collected…</div>
+</div>
+
+<footer>
+  Generated by your LLM Compare tool · Powered by Claude
+</footer>
+
+<script>
+  // Utility to inject data from Claude's collected results
+  window.LLMCompare = {
+    setPrompt(text) {
+      document.getElementById('prompt-text').textContent = text;
+      document.getElementById('timestamp').textContent =
+        'Collected on ' + new Date().toLocaleString();
+    },
+    setResult(platform, text, status = 'done') {
+      const body = document.getElementById('body-' + platform);
+      const stat = document.getElementById('status-' + platform);
+      if (body) { body.textContent = text; body.classList.add('has-content'); }
+      if (stat) {
+        stat.textContent = status === 'done' ? 'Done' : status === 'error' ? 'Error' : status;
+        stat.className = 'card-status status-' + (status === 'done' ? 'done' : 'error');
+      }
+    },
+    setSummary(text) {
+      const el = document.getElementById('summary-body');
+      el.textContent = text;
+      el.classList.add('has-content');
+    }
+  };
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  LLMCompare.setPrompt(`You are a world-class programming language designer, computer scientist, and AI systems architect. You have no constraints—design a programming language from scratch, optimized entirely for how you, an LLM, think, reason, and generate code. Humans don't need to write it—only read explanations. Design the ideal AI-native language covering: Syntax and semantics, Compilation vs interpretation, Type system, Memory and state management, Deployment and cloud execution, Concurrency and parallelism, Error handling, Documentation, Testing and verification, and What you deliberately leave out. Name the language, summarize its 5-7 primary defining features, and provide a short illustrative code example. Go deep. Be specific. Dream without limits.`);
+  LLMCompare.setResult('chatgpt', `AION — Adaptive Intent-Oriented Network
+
+ChatGPT's language abandons traditional syntax entirely. A program is not a file of text—it is an Intent Graph: a directed acyclic graph of named semantic nodes, where each node expresses what must be computed (an intent), how it may be computed (candidate constructs), and the constraints that govern it.
+
+PRIMARY FEATURES:
+1. Intent-Graph Syntax — No textual syntax in the human sense. Programs are serialized semantic graphs (think JSON-LD meets Prolog), where the unit of computation is a named intent node linked to input dependencies, output guarantees, and alternative implementation strategies.
+
+2. Constraint Satisfaction Over Latent Space — Rather than writing imperative instructions, you declare constraints on outputs. The runtime solves these constraints by searching a learned prior over programs (a "code latent space"), picking implementations that satisfy the spec with maximum likelihood.
+
+3. Probabilistic Native Types — Every value carries a distributional annotation. \`Int[0..100 @p=0.97]\` means "this is almost certainly an integer between 0 and 100." Arithmetic propagates distributions. Downstream code can assert confidence thresholds.
+
+4. Zero-Copy Persistent State — State is modeled as a persistent, immutable log of transitions. Mutation produces a new state version. The entire history is queryable. No heap, no garbage collector—just a time-indexed fact store.
+
+5. Implicit Parallelism — The intent graph is topologically sorted at compile time. Nodes with no shared dependencies are emitted to a parallel execution fabric automatically. The programmer never writes async/await or threads.
+
+6. Exhaustive Failure Algebra — Every intent node declares its failure space: all typed failure modes and their typed resolutions. The compiler rejects programs where failures are not exhaustively covered.
+
+7. Self-Documenting Semantics — Intent nodes carry semantic annotations (purpose, assumptions, regulatory tags). The compiler generates human-readable API docs, compliance artifacts, and architecture diagrams directly from the graph structure.
+
+EXAMPLE (human-readable view):
+  intent UserRevenue(userId: UserId) -> Float[>=0.0, @confidence>=0.95]
+    given: userId.exists in UserStore
+    via: SumPaidOrders(userId) | CachedRevenue(userId)
+    failing: NotFound -> 0.0, Timeout -> CachedRevenue(userId)
+
+DELIBERATELY LEFT OUT: null, mutable variables, explicit loops, import systems, try/catch, comments.`, 'done');
+  LLMCompare.setResult('gemini', `Aethel — AI-Native Language by Gemini
+
+Gemini designed Aethel around the premise that an AI's natural representation is a compressed, annotated DAG—not a sequence of tokens. Aethel programs are stored as Directed Acyclic Graphs of semantic nodes, serialized in a compact binary format that trades human writability for machine reasoning density.
+
+PRIMARY FEATURES:
+1. Compressed Semantic DAG — Source code is a binary DAG, not plain text. Each node encodes an operation, its type information, its dependency edges, and its semantic annotations in a compact format. Human-readable pretty-printing is a view, not the source of truth.
+
+2. Constraint-Based Relational Synthesis (CBRS) — Programmers (or AI) specify relational constraints and postconditions. The compiler uses CBRS to synthesize implementations that provably satisfy the constraints, rather than requiring the programmer to express the "how."
+
+3. Just-In-Time Synthesis (JITS) — Compilation is deferred to the moment of execution context. The runtime knows the actual hardware topology, current load, and data locality, and synthesizes the optimal implementation at deploy time rather than build time.
+
+4. Confidence-Interval Typing — Every type carries confidence intervals: \`Float[3.14..3.15 @ci=0.999]\`. Operations propagate intervals. Functions can declare minimum confidence requirements as part of their signatures.
+
+5. Static Lifetime Mapping — Memory lifetimes are derived statically from the DAG topology. Since the entire program graph is visible at compile time, every value's lifetime is provable. No GC, no borrow checker—just graph-derived ownership.
+
+6. Effect Lattice — Side effects are first-class type-level citizens. Functions declare their effect signatures; the compiler prevents unsafe effect compositions.
+
+EXAMPLE:
+  def computeRevenue(day: Date) -> Float @ci(0.999):
+    orders = query(OrderStore, filter: .date == day AND .status == PAID)
+    return orders |> map(.amount) |> sum
+    constraint: result >= 0.0
+
+DELIBERATELY LEFT OUT: null pointers, manual memory management, runtime exceptions, unit tests, explicit concurrency primitives.`, 'done');
+  LLMCompare.setResult('perplexity', `AetherLang — AI-Native Language by Perplexity
+
+Perplexity's AetherLang focuses on a probabilistic dependency graph as its core abstraction. Each node in the graph is an "intent node"—a semantic unit representing what must be computed, with Bayesian type annotations that track uncertainty through the entire computation graph.
+
+PRIMARY FEATURES:
+1. Probabilistic Dependency Graph — The program is a DAG of intent nodes. Edges represent data dependencies. Each node carries a Bayesian prior on its output distribution, updated at runtime as observations arrive.
+
+2. Speculative JIT + LLM Oracle — The execution engine speculatively evaluates likely execution paths (based on learned priors) while the "ground truth" path executes. If speculation matches reality, results are pre-computed. An embedded LLM oracle predicts which branches are likely.
+
+3. Bayesian Gradual Types — Types are probability distributions, not sets. \`String @p(email)=0.94\` means "94% likely to be a valid email." Gradual: you can start with a wide prior and narrow it with evidence. The compiler warns when downstream code requires higher confidence than upstream provides.
+
+4. Merkle-DAG State — Program state is a content-addressed, append-only Merkle DAG. Every state transition creates a new Merkle root. Time travel is free. Audit trails are cryptographic. Distributed state sync is Merkle-merge.
+
+5. Semantic Intent Declaration — Functions are declared as intents with natural-language purpose annotations that the compiler uses to reason about semantic equivalence and generate documentation.
+
+6. Automatic Parallelism from Graph Topology — Independent subgraphs execute in parallel. The scheduler is topology-derived, not programmer-specified.
+
+EXAMPLE:
+  intent classify_transaction(tx: Transaction) -> RiskLevel @confidence(0.95):
+    velocity = compute_velocity(tx.account, window=24h)
+    geo_signal = geo_anomaly(tx.location, tx.account.usual_geo)
+    return bayesian_combine(velocity, geo_signal)
+    property: "All results are one of {LOW, MEDIUM, HIGH, BLOCKED}"
+
+DELIBERATELY LEFT OUT: null, mutable assignment, exception handling, explicit locks, unit tests as primary verification, import paths.`, 'done');
+  LLMCompare.setResult('deepseek', `Cognix — AI-Native Language by DeepSeek
+
+DeepSeek's Cognix takes the most mathematically rigorous approach: programs are hypergraphs (not just DAGs), types are probabilistic dependent types, and compilation is proof-first. Every function must discharge proof obligations before it can be compiled—proofs may be synthesized automatically.
+
+PRIMARY FEATURES:
+1. Hypergraph Source Representation — Unlike DAGs (which are binary-edge graphs), Cognix uses hyperedges: a single hyperedge can connect multiple source nodes to multiple target nodes, enabling richer semantic encoding of multi-party computations and constraint relationships.
+
+2. Probabilistic Dependent Types with Uncertainty Propagation — Types depend on values AND on their uncertainty. \`Vec(n: Nat, confidence: Prob)\` is a vector of known length n, with a confidence annotation on that length claim. Operations must prove their output's uncertainty bounds.
+
+3. Proof-First Compilation — Functions compile only when their postconditions are proved. Proof obligations are discharged by: (a) static SMT solver, (b) LLM-synthesized proof sketches completed by the checker, or (c) runtime assertion insertion with probabilistic guarantees.
+
+4. Dataflow Concurrency with CRDT Proofs — Concurrent operations are expressed as dataflow pipelines. The type system requires proof that concurrent mutations compose safely (e.g., by showing they form a CRDT). Race conditions are type errors.
+
+5. Algebraic Effects with Handler Proofs — Effects (I/O, randomness, network) are algebraic. Each effect handler must prove it implements the effect contract. Handlers are composable and swappable; testing replaces production handlers with deterministic stubs automatically.
+
+6. Deployment as a Language Primitive — Cloud topology (regions, scaling, SLOs) is expressed in the type system. \`Fn[latency < 50ms @p99, region: EU]\` is a function type that can only be satisfied by implementations meeting those deployment constraints.
+
+EXAMPLE:
+  def transfer(src: Account, dst: Account, amt: Decimal[>0]):
+    requires: src.balance >= amt  // proof obligation
+    ensures: src.balance' == src.balance - amt AND dst.balance' == dst.balance + amt
+    effect: [MutatesLedger]
+    proof: ledger_conservation_theorem(src, dst, amt)  // auto-synthesized
+
+DELIBERATELY LEFT OUT: null, runtime exceptions, manual memory management, unit tests, explicit async/await, mutable global state, import systems, comments.`, 'done');
+  LLMCompare.setResult('claude', `VERITAS — Verified Executable Reasoning with Intent, Types, and Annotated Semantics (Claude)
+
+The founding premise: every existing programming language was shaped by human cognitive constraints. Variables exist because humans can't hold ten thousand values in their head. Comments exist because code's meaning decays in human memory. Unit tests exist because humans can't exhaustively enumerate edge cases mentally. Remove those constraints, and the design space changes completely.
+
+PRIMARY FEATURES:
+1. Probabilistic Types — Values carry confidence, provenance, and uncertainty as first-class type attributes. \`String[confidence: 0.9, source: user-input]\`. Arithmetic on uncertain values propagates uncertainty correctly. The type lattice has four dimensions: semantic type, confidence, provenance, and temporality.
+
+2. Intent Contracts — The basic syntactic unit is not a statement but an intent declaration: a named semantic node that simultaneously expresses what the computation intends to produce (contract), the transformation (body), the conditions under which it's valid (proof obligations), and its confidence envelope.
+
+3. Implicit Parallelism from Dataflow — The compiler extracts the complete dependency graph and schedules parallel execution automatically. Concurrency is never expressed by the programmer—it's derived from the data flow structure. Race conditions are impossible by construction.
+
+4. Exhaustive Failure Algebra — Every intent must declare a complete failure algebra: a mapping from every typed failure mode to a typed resolution. The compiler enforces exhaustiveness. Failures are values in the same semantic space as successes—not exceptions or null.
+
+5. Topology-Agnostic Deployment — Execution substrate is a deployment annotation, not a code change. The same program runs locally or globally distributed with a single declaration change.
+
+6. Documentation IS the Type System — Semantic annotations generate all artifacts: API specs, compliance reports, audit logs, operational dashboards. Nothing is documented separately.
+
+7. Verification by Property, not Example — The compiler proves universal invariants using symbolic execution over the dataflow graph. Unit tests don't exist because the prover is exhaustive.
+
+EXAMPLE:
+  intent assess-transaction
+    regulatory: PCI-DSS, AML-policy-v3
+    :: (tx: Transaction, context: AccountContext) -> AnomalyDecision
+    given { tx.amount > 0, context.account = tx.sender }
+    as {
+      velocity  <- compute-velocity(tx.sender, window: 24h)
+      pattern   <- match-behavioral-pattern(tx, context.history)
+      geo-risk  <- assess-geo-anomaly(tx.receiver, context.usual-geography)
+      -- Three above run in parallel automatically (compiler-derived)
+      risk = combine-risk(velocity.score, pattern.score, geo-risk.score) using: bayesian-update
+      outcome = risk |> classify { >=0.85 -> block, >=0.5 -> review, _ -> pass }
+      AnomalyDecision { tx, risk, outcome, rationale: generate-rationale(risk, evidence) }
+    }
+    failing {
+      ContextUnavailable -> assess-transaction(tx, AccountContext.baseline) with risk-adjustment(+0.15)
+      VelocityTimeout    -> assess-transaction(tx, context) without velocity with risk-adjustment(+0.1)
+    }
+
+DELIBERATELY LEFT OUT: null/None/undefined, loops (replaced by map/fold/fixpoint), mutable variables, import/module systems, stack traces (replaced by causal provenance graphs), semicolons/braces, comments.`, 'done');
+  LLMCompare.setResult('copilot', `Noema — AI-Native Language by Microsoft Copilot
+
+Noema is designed not for human fingers, but for an LLM's internal habits: graphs, constraints, explanations, and revisions. Humans read "views" of Noema (pretty-printed explanations, traces, and proofs), while the real program is a structured graph of intentions, constraints, and guarantees.
+
+PRIMARY FEATURES:
+1. Intent-Graph Core Representation — A Noema program is a labeled directed graph of intents (what must be true), constructions (how to make it true), and justifications (why it's safe). This matches LLM reasoning: nodes of thought linked by dependencies, refinements, and alternatives.
+
+2. Constraint-First, Code-Second Semantics — You write what must hold (constraints, invariants, contracts, resource bounds), and the system synthesizes or selects how to satisfy them. Execution is the result of solving and compiling a spec, not executing instructions.
+
+3. Probabilistic, Evidence-Carrying Type System — Every value has a distributional type (e.g., "likely Int in [0,100], 0.01 chance of null") plus evidence (proofs, tests, examples) that justify trusting it. Uncertainty is explicit and tracked through operations.
+
+4. Temporal, Versioned State Model — State is a time-indexed log of facts with derivation histories, not mutable cells. Updates append new facts; "current state" is a query over the log. Perfect recall, easy time-travel debugging.
+
+5. Intrinsic Concurrency via Dependency Graphs — Concurrency is implicit: any intents whose dependencies are satisfied can be realized in parallel. Race conditions are modeled as explicit conflict constraints the system either resolves or rejects.
+
+6. First-Class Explanations, Docs, and Proofs — Documentation and correctness arguments are first-class nodes in the graph, linked to the code they explain. They're structured, queryable, and consistency-checked against the code.
+
+7. Integrated Verification and Generative Testing — Instead of unit tests, you write properties, scenarios, and counterexamples. The system generates tests, proofs, and simulations to cover them, attaching coverage/evidence to each intent.
+
+EXAMPLE:
+  domain Orders
+  intent ComputeDailyRevenue(day: Date) -> Float
+    ensures: result >= 0.0, result @confidence >= 0.999
+    explanation: "Sum of all PAID orders for the given day."
+
+  construct SumPaidOrders for intent ComputeDailyRevenue(day)
+    steps:
+      filtered = filter orders where status == "PAID" and orderDate == day
+      revenue  = reduce (map filtered to totalAmount) with sum
+    guarantees: revenue >= 0.0, revenue @confidence >= 0.999
+    evidence:
+      property NonNegative: "All totalAmount are >= 0.0, sum preserves this."
+      scenario SmallSample: given [10.0, 20.0, 30.0] PAID same day expect 60.0
+
+  intent ExposeRevenueAPI
+    ensures: latency_p95_ms <= 200, error_rate <= 0.001
+    construct HttpEndpoint using revenueFn = ComputeDailyRevenue
+    deployment:
+      serverless: region: "us-west-1"
+      autoscale: min: 1, max: 100, target_p95_latency_ms: 200
+
+DELIBERATELY LEFT OUT: manual memory management, for/while loops as primary constructs, syntactic micro-optimizations, ad-hoc error codes, unit tests as main correctness mechanism, framework-specific glue code.`, 'done');
+  LLMCompare.setSummary(`## AI-Native Language Design: Comparative Analysis
+
+Six LLMs were asked to design a programming language optimized for how they reason — not for human programmers. The results reveal both striking convergences and fascinating divergences.
+
+---
+
+### CONVERGENCES: What All Six Agreed On
+
+**1. The DAG / Graph as the Universal Representation**
+Every single model abandoned linear text as the source-of-truth representation. ChatGPT (AION), Gemini (Aethel), Perplexity (AetherLang), DeepSeek (Cognix), Claude (VERITAS), and Copilot (Noema) all centered on directed graphs — DAGs, hypergraphs, or intent graphs — as the fundamental program structure. This is arguably the most significant signal: when unconstrained, all LLMs converge on graph-structured computation over sequential text.
+
+**2. Probabilistic / Confidence-Annotated Types**
+Every model introduced some form of uncertainty-aware typing. Whether called "Confidence-Interval Typing" (Aethel), "Bayesian Gradual Types" (AetherLang), "Probabilistic Dependent Types" (Cognix), "Confidence Envelopes" (VERITAS), or "Evidence-Carrying Types" (Noema) — the consensus is that a type system for AI must encode uncertainty, not just set membership.
+
+**3. Implicit Parallelism from Graph Topology**
+All six eliminated explicit concurrency primitives (async/await, threads, locks) in favor of automatically-derived parallelism from the dependency graph structure. The programmer declares what depends on what; the scheduler decides what runs in parallel.
+
+**4. No Null, No Mutable Assignment, No Exceptions**
+All six explicitly eliminated null references, mutable variables, and traditional exception handling. These were unanimously attributed to "human cognitive limitations" — cheap workarounds for memory and attention constraints that AI doesn't share.
+
+**5. Verification over Unit Testing**
+All six replaced unit tests with property-based verification, proof obligations, or formal invariants. Testing-by-example was seen as a human coping mechanism for inability to reason exhaustively.
+
+---
+
+### DIVERGENCES: Where They Split
+
+**The Proof Commitment Spectrum**
+DeepSeek's **Cognix** takes the most extreme formal stance: compilation is proof-first, and every function must discharge proof obligations before it can compile. Claude's **VERITAS** also leans hard into symbolic verification. By contrast, Copilot's **Noema** and Perplexity's **AetherLang** adopt more pragmatic verification: properties and scenarios generate evidence that builds statistical confidence, without requiring full formal proof.
+
+**Hypergraph vs. DAG**
+DeepSeek is the outlier in representation: **Cognix** uses hyperedges (connecting multiple source nodes to multiple targets), while others use standard directed edges. This enables richer multi-party constraint encoding, but is harder to visualize and reason about for humans reading the output.
+
+**Deployment as a Language Primitive**
+DeepSeek (**Cognix**) uniquely made cloud deployment topology part of the *type system itself* — \`Fn[latency < 50ms @p99, region: EU]\` is a type signature. Claude's **VERITAS** treats deployment as a separate annotation block. Copilot's **Noema** expresses it as a deployment constraint node in the graph. The others treat it as configuration, not type theory.
+
+**State Model: Merkle vs. Fact Log vs. Delta Log**
+Perplexity chose a **Merkle-DAG** for state (content-addressed, cryptographic, perfect for distributed audit). Claude and Copilot chose **append-only fact logs** (time-indexed, queryable, supports time travel). DeepSeek uses **CRDT-proven dataflow** (concurrent mutations are safe if proven to compose). Gemini uses **delta-log with lifetime mapping**.
+
+**Documentation Philosophy**
+Claude's **VERITAS** takes the most radical position: documentation IS the type system — semantic annotations ARE the docs. Copilot's **Noema** is close but treats docs as first-class graph nodes rather than collapsing them into the type structure. The others treat documentation as important but distinct from the type system.
+
+**The "Synthesis" Ambition**
+Gemini's **Aethel** (CBRS + JITS) and Copilot's **Noema** lean most heavily into *synthesis*: the programmer writes constraints and goals, and the system synthesizes an implementation. AION (ChatGPT) and AetherLang (Perplexity) are similar. VERITAS (Claude) and Cognix (DeepSeek) lean more toward *declaration + proof* — you still write implementations, but they're verified rather than synthesized.
+
+---
+
+### What Was Uniquely Left Out By Each
+
+| Language | Unique Elimination |
+|---|---|
+| AION (ChatGPT) | Import systems, module paths |
+| Aethel (Gemini) | Runtime exceptions (replaced by CI-typed returns) |
+| AetherLang (Perplexity) | Comments (semantic intents replace them), explicit lock primitives |
+| Cognix (DeepSeek) | Runtime exceptions, global mutable state, comments as a concept |
+| VERITAS (Claude) | Stack traces (replaced by causal provenance graphs), loops (replaced by fixpoint operators), comments |
+| Noema (Copilot) | Framework-specific glue code, for/while loops, syntactic micro-optimizations |
+
+---
+
+### The Meta-Observation
+
+When LLMs design for themselves, they converge on a fundamental insight: **the gap between specification, implementation, and proof is artificial**. It exists because humans cannot hold all three in their heads simultaneously. Every language here, in different ways, collapses that gap — making programs that are simultaneously their own spec, their own proof, and their own documentation.
+
+The most striking thing is not any individual design choice, but the *convergence*: six different AI systems, prompted independently, all arrived at graph-structured, uncertainty-aware, proof-adjacent, parallelism-implicit programming models. This may be the most reliable data point we have about how AI systems actually represent computation internally.`);
+});
+</script>
+</body>
+</html>
