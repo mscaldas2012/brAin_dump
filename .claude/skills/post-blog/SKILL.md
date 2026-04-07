@@ -45,7 +45,6 @@ Follow these steps in order:
 - Keep relative paths correct — files are nested under `yyyy/MM/` so links to `index.html` need `../../index.html`
 - Match the existing look & feel of the site (same fonts, colors, card styles) when adding footer navigation
 - Do not modify the content of the post itself (beyond the em-dash removal), only add the footer navigation and the analytics beacon
-- The `gh` binary is located at `/opt/homebrew/bin/gh`
 
 ## Config
 
