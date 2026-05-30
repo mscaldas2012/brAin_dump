@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDD Does Not Mean Waterfall</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --paper: #faf8f4;
+    --accent: #c4553a;
+    --accent-soft: #e8d5cf;
+    --muted: #6b6560;
+    --rule: #d4cfc8;
+    --highlight: #fff3cd;
+    --code-bg: #2d2a26;
+    --warm1: #c4553a;
+    --warm2: #8a6340;
+    --warm3: #4a7c6f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 18px;
+    scroll-behavior: smooth;
+    background: var(--paper);
+  }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: var(--ink);
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(170deg, #1a1a1a 0%, #1e2218 40%, #2a2018 100%);
+    color: #faf8f4;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 20% 50%, rgba(196,85,58,0.15), transparent),
+      radial-gradient(ellipse 500px 500px at 80% 30%, rgba(74,124,111,0.1), transparent),
+      radial-gradient(ellipse 400px 600px at 60% 80%, rgba(138,99,64,0.1), transparent);
+    pointer-events: none;
+  }
+
+  .hero-kicker {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    line-height: 1.1;
+    max-width: 14em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hero-subtitle {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.15rem;
+    font-weight: 300;
+    max-width: 32em;
+    line-height: 1.6;
+    color: rgba(250,248,244,0.7);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .hero-meta {
+    margin-top: 3rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    color: rgba(250,248,244,0.4);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    animation: fadeUp 0.8s 1s forwards;
+  }
+
+  .hero-scroll span {
+    display: block;
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(to bottom, rgba(250,248,244,0.4), transparent);
+    margin: 0 auto;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  /* ─── MAIN CONTENT ─── */
+  .content {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 5rem 2rem 6rem;
+  }
+
+  .content p {
+    margin-bottom: 1.4rem;
+  }
+
+  .content p.lede {
+    font-size: 1.2rem;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.75;
+    margin-bottom: 2.5rem;
+  }
+
+  /* ─── SECTION HEADINGS ─── */
+  .section-label {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    color: var(--warm1);
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 2rem;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+  }
+
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.35rem;
+    line-height: 1.3;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  /* ─── DIVIDERS ─── */
+  .divider {
+    border: none;
+    height: 1px;
+    background: var(--rule);
+    margin: 4rem 0;
+  }
+
+  .divider.heavy {
+    height: 3px;
+    background: linear-gradient(to right, var(--warm1), var(--warm2), var(--warm3));
+    margin: 5rem 0;
+  }
+
+  /* ─── CALLOUT CARDS ─── */
+  .insight-card {
+    border-left: 4px solid var(--accent);
+    padding: 2rem 2rem 2rem 2.5rem;
+    margin: 2.5rem 0;
+    background: white;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03);
+  }
+
+  .insight-card h4 {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .insight-card p {
+    font-size: 0.95rem;
+    margin-bottom: 0.8rem;
+    line-height: 1.65;
+  }
+
+  .insight-card p:last-child { margin-bottom: 0; }
+
+  /* ─── GAP CALLOUTS ─── */
+  .gap-callout {
+    margin: 2.5rem 0;
+    padding: 2rem;
+    border-radius: 8px;
+    position: relative;
+  }
+
+  .gap-callout.insight {
+    background: #f5f0eb;
+    border: 1px solid #ddd5cb;
+  }
+
+  .gap-callout.action {
+    background: #f0f7f4;
+    border: 1px solid #b8d9ca;
+  }
+
+  .gap-callout .callout-tag {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.68rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.6rem;
+  }
+
+  .gap-callout.insight .callout-tag { color: var(--warm2); }
+  .gap-callout.action .callout-tag { color: var(--warm3); }
+
+  .gap-callout p {
+    font-size: 0.92rem;
+    line-height: 1.65;
+    margin-bottom: 0.6rem;
+  }
+
+  .gap-callout p:last-child { margin-bottom: 0; }
+
+  /* ─── BLOCKQUOTE ─── */
+  blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 0 0.2rem 1.5rem;
+    margin: 2rem 0;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 1.05rem;
+  }
+
+  /* ─── LINKS ─── */
+  a {
+    color: var(--warm2);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-soft);
+    text-underline-offset: 2px;
+  }
+
+  a:hover {
+    color: var(--accent);
+    text-decoration-color: var(--accent);
+  }
+
+  /* ─── STRONG / EM ─── */
+  strong { font-weight: 600; }
+
+  em { font-style: italic; }
+
+  /* ─── FOOTER ─── */
+  .article-footer {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 2rem 5rem;
+    border-top: 1px solid var(--rule);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    color: var(--muted);
+    text-align: center;
+    line-height: 1.7;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 640px) {
+    html { font-size: 16px; }
+    .content { padding: 3rem 1.25rem 4rem; }
+    .insight-card { padding: 1.5rem; }
+    h2 { font-size: 1.65rem; }
+  }
+</style>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "763b29a7634e48e48bbdcb37b13ba83a"}'></script><!-- End Cloudflare Web Analytics -->
+</head>
+<body>
+
+<!-- ════════════ HERO ════════════ -->
+<header class="hero">
+  <p class="hero-kicker">On Spec-Driven Development</p>
+  <h1>SDD Does Not Mean <em>Waterfall</em></h1>
+  <p class="hero-subtitle">
+    Every developer's first reaction to spec-driven development is "aren't we going back to Waterfall?" Here's why that instinct is understandable - and wrong.
+  </p>
+  <p class="hero-meta">May 2026 · 8 min read</p>
+  <div class="hero-scroll"><span></span></div>
+</header>
+
+<!-- ════════════ ARTICLE ════════════ -->
+<article class="content">
+
+  <p class="lede">
+    There's a reflex reaction when developers first hear about Spec-Driven Development: "Great, we're going back to Waterfall." The comparison is understandable - and worth taking seriously before dismissing it.
+  </p>
+
+  <hr class="divider heavy">
+
+  <!-- ════════════ SECTION 1 ════════════ -->
+  <p class="section-label">The surface similarity is real</p>
+  <h2>Why It Feels Like Waterfall</h2>
+
+  <p>
+    In both Waterfall and SDD, you write documents before you write code. In both, those documents have names like "requirements" and "design." In both, someone has to sign off on a plan before implementation starts. For anyone who lived through the 1990s and early 2000s, when Waterfall produced three-ring binders nobody read and projects that shipped two years late and wrong, that pattern recognition is visceral.
+  </p>
+
+  <p>
+    But Waterfall wasn't killed by the documents. It was killed by two specific assumptions baked into its DNA: that requirements can be <em>complete</em> before implementation starts, and that deviations from the spec are <em>failures</em> rather than <em>learning</em>. The spec was a contract. Change was a breach.
+  </p>
+
+  <p>
+    Those assumptions are gone in SDD. The spec is a starting position, not a contract. It exists to be amended when reality diverges from the plan - and it will. The question isn't whether the spec will change; it's how quickly you can update it when it does, and whether the implementation drifts silently or the drift is captured and deliberate.
+  </p>
+
+  <div class="insight-card">
+    <h4>The feedback loop has changed everything</h4>
+    <p>There's a critical structural difference that wasn't available in the Waterfall era: the thing reading your spec is not a team of twenty engineers in a six-month project. It's an LLM working in hours. The feedback loop between spec and output is tight enough that "iterate on the spec" is a reasonable thing to do in the same afternoon.</p>
+    <p>Waterfall's rigidity was partly a response to the cost of iteration - when it took a month to incorporate feedback, you didn't want to incorporate it often. That cost is gone now.</p>
+  </div>
+
+  <p>
+    So yes, SDD puts documents before code. No, it is not Waterfall.
+  </p>
+
+  <hr class="divider">
+
+  <!-- ════════════ SECTION 2 ════════════ -->
+  <p class="section-label">The convergence isn't coincidental</p>
+  <h2>The Industry Is Reaching the Same Conclusion</h2>
+
+  <p>
+    This isn't a fringe practice anymore. In 2026, every major AI coding tool has shipped its own flavor of spec-driven development. GitHub shipped <a href="https://github.com/github/spec-kit" target="_blank" rel="noopener">Spec Kit</a>. AWS launched <a href="https://kiro.dev/" target="_blank" rel="noopener">Kiro</a>, an entirely new agentic IDE whose core differentiator is that before any code is written, the agent produces three structured documents: <code>requirements.md</code>, <code>design.md</code>, and <code>tasks.md</code>. Cursor, OpenSpec, BMAD, Tessl - the list is past thirty frameworks and growing. A recent <a href="https://medium.com/@visrow/spec-driven-development-is-eating-software-engineering-a-map-of-30-agentic-coding-frameworks-6ac0b5e2b484" target="_blank" rel="noopener">survey of agentic coding tools</a> called it flatly: "SDD is eating software engineering."
+  </p>
+
+  <p>
+    The convergence makes sense. Every team that gave an LLM a vague prompt and watched it build something adjacent to what they wanted eventually arrived at the same place: the model needs more constraint, not more capability. The problem isn't that the model is too dumb to build the right thing - it's that "the right thing" was never specified precisely enough to leave room for a wrong answer.
+  </p>
+
+  <blockquote>
+    Early adopters at GitHub and AWS are reporting 3-10x higher first-pass success rates from agents on non-trivial tasks when working from structured specs. That's not a small number.
+  </blockquote>
+
+  <hr class="divider">
+
+  <!-- ════════════ SECTION 3 ════════════ -->
+  <p class="section-label">Capability and reliability don't scale together</p>
+  <h2>Agents Are Getting Better. Phases Still Matter.</h2>
+
+  <p>
+    Here's where it gets interesting - and where the Waterfall parallel gets tempting again.
+  </p>
+
+  <p>
+    AI agents are improving at long-horizon tasks at a remarkable rate. Research from <a href="https://metr.org/time-horizons/" target="_blank" rel="noopener">METR</a> shows AI task duration doubling roughly every seven months. In early 2025, a capable agent could reliably handle about an hour of autonomous work. By late 2026, that's projected to stretch to eight hours. Claude Opus 4.6, released in early 2026, has a 1M-token context and a 14.5-hour task horizon. OpenAI Codex recently introduced a <code>/goal</code> command for persistent objectives that survive session breaks.
+  </p>
+
+  <p>
+    The natural reaction: if agents can now handle eight-hour workstreams, why break anything into phases at all? Just give the spec to the agent and go to lunch.
+  </p>
+
+  <div class="insight-card">
+    <h4>Task horizon vs. reliability: they don't scale together</h4>
+    <p>The same METR research shows that every agent experiences a success rate drop past about 35 minutes, and doubling task duration roughly quadruples the failure rate. What you gain in raw capability you lose in consistency.</p>
+    <p>Context rot is the underlying mechanism: as the session gets long, the context window fills with error traces, failed attempts, and accumulated tool call history. The model starts making worse decisions - not because it forgot the spec, but because the signal-to-noise ratio in its working memory has degraded.</p>
+  </div>
+
+  <p>
+    This is what practitioners call "context drift," and it's still an <a href="https://www.epam.com/insights/ai/blogs/how-to-use-long-horizon-agents-in-production" target="_blank" rel="noopener">open problem in 2026</a>. Getting agents to make consistent progress across multiple context windows - where the second session has no memory of what the first session tried and failed - remains one of the harder unsolved challenges in production agentic coding.
+  </p>
+
+  <p>
+    Phased implementation is the practical response. Not because agents can't handle long tasks, but because a hard checkpoint resets the context. Complete Phase 1. Validate: does <code>docker compose up</code> succeed? Does <code>/health</code> return 200? If yes, start a fresh session for Phase 2. Each phase's agent starts with clean context, anchored to the spec and the plan, without the accumulated noise of everything the previous session tried. You trade the theoretical efficiency of one giant session for the actual reliability of many short ones.
+  </p>
+
+  <p>
+    The agents will keep improving. The physics of context degradation are unlikely to disappear entirely. Phases will remain useful for the foreseeable future, even as the phases get longer.
+  </p>
+
+  <hr class="divider">
+
+  <!-- ════════════ SECTION 4 ════════════ -->
+  <p class="section-label">The real job specs do</p>
+  <h2>Specs Are Guardrails, Not Blueprints</h2>
+
+  <p>
+    Beyond the session management question, there's a more fundamental thing specs do that has nothing to do with Waterfall and everything to do with the specific failure mode of LLM-based development.
+  </p>
+
+  <p>
+    When vibecoding - prompting an agent to build something without constraints - the agent goes on tangents. It builds what you asked for (kind of), but it also builds abstractions you didn't want, implements features you didn't mention, and scaffolds infrastructure you weren't ready for. The bigger the task, the larger the diversion. The agent genuinely believes it's helping. Think of it like a junior developer who can't resist adding "just one more thing" - except the junior developer works at superhuman speed and generates a lot of "one more things" before you notice.
+  </p>
+
+  <p>
+    Specs curtail that. Not perfectly - the LLM still wants to show its potential. But with a spec in place, it doesn't drift nearly as far. The spec tells the model not just what to build, but what <em>not</em> to build. That framing is underappreciated.
+  </p>
+
+  <div class="gap-callout insight">
+    <p class="callout-tag">The vibe coding hangover</p>
+    <p>Teams that built fast and loose in 2024-2025 are now dealing with <a href="https://www.elektormagazine.com/articles/2026-an-ai-odyssey-vibe-coding-hangover" target="_blank" rel="noopener">PR review fatigue</a> - a 40-60% increase in pull request volume with code that's hard to review because no one specified what it was supposed to do. The architectural drift compounds: the model forgets earlier decisions and contradicts them silently. What felt like productivity was often just deferring the reckoning.</p>
+  </div>
+
+  <p>
+    In speckit, the guardrail mechanism is explicit: a project-level <code>constitution.md</code> with numbered principles in hard MUST language. During planning, every principle gets checked against the proposed design. Fail a gate, and the planner stops. The agent can't silently drift into an architectural decision that violates your explicit constraints - the fence is enforced programmatically rather than by hoping the model remembers your preferences from three sessions ago.
+  </p>
+
+  <hr class="divider">
+
+  <!-- ════════════ SECTION 5 ════════════ -->
+  <p class="section-label">The honest limit</p>
+  <h2>The 60-80% Problem</h2>
+
+  <p>
+    Specs will get you 60, maybe 80 percent of the way there. Getting to 100% with a spec alone is nearly impossible unless the problem is trivially simple.
+  </p>
+
+  <p>
+    What actually happens in practice: you use the spec to get close, then you iterate. You tweak the UI, refocus the logic, adjust behavior you didn't anticipate needing to define. And to be honest - not every change makes it back into the spec. If there's a major derailment, yes, you update the spec documents, plans, and tasks. But moving a button or changing a color? That usually goes undocumented. That's a pragmatic call, not a failure of the methodology.
+  </p>
+
+  <p>
+    This is the sharpest contrast with Waterfall. Waterfall treated every deviation as a defect requiring a change request. SDD distinguishes between deviations that matter architecturally and ones that don't. You don't need to document every UI tweak. You do need to document a change to the data model or the authentication strategy, because the next agent session - starting fresh, anchored to the spec - will contradict you if you don't.
+  </p>
+
+  <blockquote>
+    The spec is a living document. It needs to stay close enough to the actual system that an agent reading it cold can make good decisions. Not completeness, not contractual accuracy - sufficient fidelity to guide the next session.
+  </blockquote>
+
+  <hr class="divider">
+
+  <!-- ════════════ SECTION 6 ════════════ -->
+  <p class="section-label">Lessons from using it wrong</p>
+  <h2>The Steps Most People Skip</h2>
+
+  <p>
+    After experimenting with speckit seriously on a real project, I discovered I was using it wrong - and the mistakes were instructive.
+  </p>
+
+  <p>
+    The most underused step in the entire workflow is <strong>clarification</strong>. Speckit has a <code>/speckit-clarify</code> command that runs a taxonomy scan across eleven ambiguity categories and surfaces up to five questions per run, one at a time, each with a recommended answer - and you can re-run it as many times as you need until the spec feels tight. It's not interrogating you; it's proposing defaults and letting you validate or override. The questions it surfaces feel obvious in retrospect: "Should visibility inheritance cascade to federation nodes or only managed nodes?" "Should delete be leaf-only or support cascade?" These are the decisions that, when left unresolved at spec time, become architectural surprises during implementation - or worse, contradictory fix commits after the fact. Kiro takes a similar approach: before any code, the agent asks clarifying questions and resolves ambiguity in the design document, not in the middle of writing a migration.
+  </p>
+
+  <p>
+    The second most skipped step is <strong>cross-artifact analysis</strong> - mapping every requirement to a task and flagging zero-coverage gaps before implementation starts. This is not a review you do yourself; it's an automated pass that catches drift between what the spec promises and what the implementation plan actually covers. I skipped it. I paid for it later in fix commits that could have been caught in five minutes.
+  </p>
+
+  <div class="gap-callout action">
+    <p class="callout-tag">The consistent pattern</p>
+    <p>The steps that feel like overhead are the ones that prevent the expensive surprises downstream. This is the lesson Waterfall learned the hard way in the wrong direction - more process isn't always better - but SDD's feedback loop is tight enough that a little process upfront genuinely costs less than the cleanup after.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ════════════ SECTION 7 ════════════ -->
+  <p class="section-label">The actual value proposition</p>
+  <h2>What SDD Actually Gives You</h2>
+
+  <p>
+    The real value isn't the documents. It's a forcing function for making decisions upfront that you'd otherwise make under pressure mid-implementation.
+  </p>
+
+  <p>
+    Waterfall tried to make those decisions comprehensive and final. SDD makes them <em>sufficient and revisable</em>. You define enough to constrain the work, and you update when reality diverges from the plan. The spec lives alongside the code, not above it.
+  </p>
+
+  <p>
+    The sessions that go best are the ones where the spec is treated as a living document - something to amend when you learn something new, not something to protect from reality. A spec is a fence. Build it thoughtfully, check it often, and adjust it when the terrain shifts.
+  </p>
+
+  <hr class="divider heavy">
+
+  <!-- ════════════ CLOSING ════════════ -->
+  <p>
+    <em>Tools referenced: <a href="https://github.com/github/spec-kit" target="_blank" rel="noopener">speckit</a> (GitHub), <a href="https://kiro.dev/" target="_blank" rel="noopener">Kiro</a> (AWS), <a href="https://openspec.dev/" target="_blank" rel="noopener">openspec</a></em>
+  </p>
+
+</article>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer class="article-footer">
+  <p>
+    Written in the spirit of the brain dump: working through ideas by putting them in writing.<br>
+    The spec for this post had exactly one requirement: be honest about where SDD actually falls short.
+  </p>
+</footer>
+
+<nav style="max-width:720px;margin:0 auto;padding:2.5rem 2rem;border-top:1px solid var(--rule);display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:0.75rem;color:var(--muted);">
+  <a href="../../index.html" style="color:var(--muted);text-decoration:none;letter-spacing:0.05em;">← Home</a>
+  <a href="20260520-brainstorm-with-ai.html" style="color:var(--muted);text-decoration:none;letter-spacing:0.05em;">← Previous</a>
+  <span></span>
+</nav>
+
+</body>
+</html>
