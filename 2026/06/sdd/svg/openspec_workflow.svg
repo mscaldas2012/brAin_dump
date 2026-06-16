@@ -1,0 +1,67 @@
+<svg width="100%" viewBox="0 0 680 520" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>OpenSpec Workflow</title>
+  <desc>OpenSpec spec-driven development workflow: Propose, Apply, Archive — lightweight and iterative</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#1D4ED8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <text x="340" y="30" font-size="16" font-weight="600" fill="#1E3A8A" font-family="sans-serif" text-anchor="middle">OpenSpec workflow</text>
+  <text x="340" y="48" font-size="11" fill="#999" font-family="sans-serif" text-anchor="middle">Lightweight · fluid · no rigid phase gates · brownfield-first</text>
+
+  <rect x="60" y="80" width="160" height="110" rx="8" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="0.8"/>
+  <text x="140" y="105" font-size="13" font-weight="600" fill="#1E3A8A" font-family="sans-serif" text-anchor="middle">1. Propose</text>
+  <text x="140" y="123" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">/opsx:new</text>
+  <text x="140" y="141" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">Change folder created:</text>
+  <text x="140" y="155" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">proposal · specs · design</text>
+  <text x="140" y="169" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">tasks artifacts</text>
+
+  <line x1="220" y1="135" x2="264" y2="135" stroke="#1D4ED8" stroke-width="1.2" marker-end="url(#arr)"/>
+
+  <rect x="264" y="80" width="160" height="110" rx="8" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="0.8"/>
+  <text x="344" y="105" font-size="13" font-weight="600" fill="#1E3A8A" font-family="sans-serif" text-anchor="middle">2. Apply</text>
+  <text x="344" y="123" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">/opsx:ff · /opsx:apply</text>
+  <text x="344" y="141" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">AI implements against</text>
+  <text x="344" y="155" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">agreed specs · update</text>
+  <text x="344" y="169" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">any artifact anytime</text>
+
+  <line x1="424" y1="135" x2="468" y2="135" stroke="#1D4ED8" stroke-width="1.2" marker-end="url(#arr)"/>
+
+  <rect x="468" y="80" width="160" height="110" rx="8" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="0.8"/>
+  <text x="548" y="105" font-size="13" font-weight="600" fill="#1E3A8A" font-family="sans-serif" text-anchor="middle">3. Archive</text>
+  <text x="548" y="123" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">/opsx:bulk-archive</text>
+  <text x="548" y="141" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">Delta specs merged into</text>
+  <text x="548" y="155" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">source-of-truth · change</text>
+  <text x="548" y="169" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">folder → archive/</text>
+
+  <path d="M548 190 Q548 220 340 230 Q140 220 140 190" fill="none" stroke="#1D4ED8" stroke-width="1" stroke-dasharray="5 3" marker-end="url(#arr)"/>
+  <text x="340" y="248" font-size="10" fill="#1D4ED8" font-family="sans-serif" text-anchor="middle">next change → new folder, repeat</text>
+
+  <rect x="40" y="270" width="280" height="130" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="0.8"/>
+  <text x="56" y="292" font-size="11" font-weight="600" fill="#334155" font-family="sans-serif">Change folder structure</text>
+  <text x="56" y="310" font-size="10" fill="#475569" font-family="monospace">openspec/changes/add-dark-mode/</text>
+  <text x="72" y="326" font-size="10" fill="#64748B" font-family="monospace">├── proposal.md</text>
+  <text x="72" y="341" font-size="10" fill="#64748B" font-family="monospace">├── specs.md</text>
+  <text x="72" y="356" font-size="10" fill="#64748B" font-family="monospace">├── design.md</text>
+  <text x="72" y="371" font-size="10" fill="#64748B" font-family="monospace">└── tasks.md</text>
+  <text x="56" y="390" font-size="10" fill="#94A3B8" font-family="monospace">→ archive/ when done</text>
+
+  <rect x="360" y="270" width="280" height="130" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="0.8"/>
+  <text x="376" y="292" font-size="11" font-weight="600" fill="#334155" font-family="sans-serif">Living source of truth</text>
+  <text x="376" y="310" font-size="10" fill="#475569" font-family="monospace">openspec/specs/</text>
+  <text x="392" y="326" font-size="10" fill="#64748B" font-family="monospace">├── navigation/spec.md</text>
+  <text x="392" y="341" font-size="10" fill="#64748B" font-family="monospace">├── auth/spec.md</text>
+  <text x="392" y="356" font-size="10" fill="#64748B" font-family="monospace">└── theme/spec.md</text>
+  <text x="376" y="376" font-size="10" fill="#94A3B8" font-family="sans-serif">Each archived change updates</text>
+  <text x="376" y="390" font-size="10" fill="#94A3B8" font-family="sans-serif">the permanent spec for that area</text>
+
+  <rect x="40" y="418" width="600" height="72" rx="8" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="0.8"/>
+  <text x="340" y="438" font-size="11" font-weight="600" fill="#1E3A8A" font-family="sans-serif" text-anchor="middle">Key principles</text>
+  <text x="340" y="456" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">No rigid phase gates — update any artifact at any time during implementation</text>
+  <text x="340" y="472" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">Spec deltas, not full upfront specs — designed for existing codebases</text>
+  <text x="340" y="488" font-size="10" fill="#1E40AF" font-family="sans-serif" text-anchor="middle">~250 line specs (vs ~800 in heavier tools) — faster review, less noise</text>
+</svg>

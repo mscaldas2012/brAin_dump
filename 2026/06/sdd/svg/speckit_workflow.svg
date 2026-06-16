@@ -1,0 +1,85 @@
+<svg width="100%" viewBox="0 0 680 520" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>SpecKit Workflow</title>
+  <desc>SpecKit spec-driven development workflow: Specify, Plan, Tasks, Implement with human review gates</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#0F766E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-gate" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-reject" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#DC2626" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <text x="340" y="30" font-size="16" font-weight="600" fill="#134E4A" font-family="sans-serif" text-anchor="middle">SpecKit workflow</text>
+  <text x="340" y="48" font-size="11" fill="#999" font-family="sans-serif" text-anchor="middle">Phase-gated · sequential · human review at each transition</text>
+
+  <rect x="40" y="70" width="140" height="70" rx="8" fill="#CCFBF1" stroke="#0F766E" stroke-width="0.8"/>
+  <text x="110" y="96" font-size="12" font-weight="600" fill="#134E4A" font-family="sans-serif" text-anchor="middle">/speckit.specify</text>
+  <text x="110" y="112" font-size="10" fill="#115E59" font-family="sans-serif" text-anchor="middle">Describe the feature.</text>
+  <text x="110" y="126" font-size="10" fill="#115E59" font-family="sans-serif" text-anchor="middle">AI generates spec doc</text>
+
+  <line x1="180" y1="105" x2="224" y2="105" stroke="#0F766E" stroke-width="1.2" marker-end="url(#arr)"/>
+
+  <polygon points="250,80 290,105 250,130 210,105" fill="#FEF3C7" stroke="#D97706" stroke-width="0.8"/>
+  <text x="250" y="101" font-size="10" font-weight="600" fill="#78350F" font-family="sans-serif" text-anchor="middle">Review</text>
+  <text x="250" y="114" font-size="10" fill="#92400E" font-family="sans-serif" text-anchor="middle">spec?</text>
+
+  <path d="M250 80 Q250 55 180 55 Q110 55 110 70" fill="none" stroke="#DC2626" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr-reject)"/>
+  <text x="185" y="50" font-size="10" fill="#DC2626" font-family="sans-serif" text-anchor="middle">reject → refine</text>
+
+  <line x1="290" y1="105" x2="334" y2="105" stroke="#D97706" stroke-width="1.2" marker-end="url(#arr-gate)"/>
+  <text x="312" y="99" font-size="10" fill="#D97706" font-family="sans-serif" text-anchor="middle">approve</text>
+
+  <rect x="334" y="70" width="140" height="70" rx="8" fill="#CCFBF1" stroke="#0F766E" stroke-width="0.8"/>
+  <text x="404" y="96" font-size="12" font-weight="600" fill="#134E4A" font-family="sans-serif" text-anchor="middle">/speckit.plan</text>
+  <text x="404" y="112" font-size="10" fill="#115E59" font-family="sans-serif" text-anchor="middle">Architecture, tech stack,</text>
+  <text x="404" y="126" font-size="10" fill="#115E59" font-family="sans-serif" text-anchor="middle">implementation detail docs</text>
+
+  <line x1="474" y1="105" x2="518" y2="105" stroke="#0F766E" stroke-width="1.2" marker-end="url(#arr)"/>
+
+  <polygon points="544,80 584,105 544,130 504,105" fill="#FEF3C7" stroke="#D97706" stroke-width="0.8"/>
+  <text x="544" y="101" font-size="10" font-weight="600" fill="#78350F" font-family="sans-serif" text-anchor="middle">Review</text>
+  <text x="544" y="114" font-size="10" fill="#92400E" font-family="sans-serif" text-anchor="middle">plan?</text>
+
+  <path d="M544 80 Q544 55 474 55 Q404 55 404 70" fill="none" stroke="#DC2626" stroke-width="1" stroke-dasharray="4 2" marker-end="url(#arr-reject)"/>
+  <text x="480" y="50" font-size="10" fill="#DC2626" font-family="sans-serif" text-anchor="middle">reject → revise</text>
+
+  <line x1="544" y1="130" x2="544" y2="174" stroke="#D97706" stroke-width="1.2" marker-end="url(#arr-gate)"/>
+  <text x="556" y="157" font-size="10" fill="#D97706" font-family="sans-serif">approve</text>
+
+  <rect x="474" y="174" width="140" height="80" rx="8" fill="#CCFBF1" stroke="#0F766E" stroke-width="0.8"/>
+  <text x="544" y="198" font-size="12" font-weight="600" fill="#134E4A" font-family="sans-serif" text-anchor="middle">/speckit.tasks</text>
+  <text x="544" y="214" font-size="10" fill="#115E59" font-family="sans-serif" text-anchor="middle">Ordered task list · [P] parallel</text>
+  <text x="544" y="228" font-size="10" fill="#115E59" font-family="sans-serif" text-anchor="middle">markers · file paths · TDD</text>
+  <text x="544" y="242" font-size="10" fill="#115E59" font-family="sans-serif" text-anchor="middle">order enforced</text>
+
+  <line x1="474" y1="214" x2="354" y2="214" stroke="#0F766E" stroke-width="1.2" marker-end="url(#arr)"/>
+  <rect x="214" y="174" width="140" height="80" rx="8" fill="#F0FDF4" stroke="#16A34A" stroke-width="0.8" stroke-dasharray="5 2"/>
+  <text x="284" y="198" font-size="12" font-weight="600" fill="#14532D" font-family="sans-serif" text-anchor="middle">/speckit.analyze</text>
+  <text x="284" y="214" font-size="10" fill="#166534" font-family="sans-serif" text-anchor="middle">Cross-artifact check ·</text>
+  <text x="284" y="228" font-size="10" fill="#166534" font-family="sans-serif" text-anchor="middle">gaps, conflicts, constitution</text>
+  <text x="284" y="242" font-size="10" fill="#166534" font-family="sans-serif" text-anchor="middle">violations (optional)</text>
+
+  <line x1="284" y1="254" x2="284" y2="298" stroke="#0F766E" stroke-width="1.2" marker-end="url(#arr)"/>
+
+  <rect x="164" y="298" width="240" height="80" rx="8" fill="#CCFBF1" stroke="#0F766E" stroke-width="1.2"/>
+  <text x="284" y="322" font-size="12" font-weight="600" fill="#134E4A" font-family="sans-serif" text-anchor="middle">/speckit.implement</text>
+  <text x="284" y="338" font-size="10" fill="#115E59" font-family="sans-serif" text-anchor="middle">AI executes tasks.md · phase checkpoints</text>
+  <text x="284" y="352" font-size="10" fill="#115E59" font-family="sans-serif" text-anchor="middle">Setup → Foundation → User stories → Polish</text>
+  <text x="284" y="366" font-size="10" fill="#115E59" font-family="sans-serif" text-anchor="middle">Tests written before implementation</text>
+
+  <line x1="284" y1="378" x2="284" y2="412" stroke="#0F766E" stroke-width="1.2" marker-end="url(#arr)"/>
+  <rect x="164" y="412" width="240" height="44" rx="8" fill="#134E4A"/>
+  <text x="284" y="432" font-size="12" font-weight="600" fill="#CCFBF1" font-family="sans-serif" text-anchor="middle">Working feature</text>
+  <text x="284" y="448" font-size="10" fill="#99F6E4" font-family="sans-serif" text-anchor="middle">Spec · plan · tasks · code all in sync</text>
+
+  <rect x="40" y="476" width="12" height="12" rx="2" fill="#CCFBF1" stroke="#0F766E" stroke-width="0.8"/>
+  <text x="58" y="487" font-size="10" fill="#666" font-family="sans-serif">AI step</text>
+  <polygon points="96,487 106,482 116,487 106,492" fill="#FEF3C7" stroke="#D97706" stroke-width="0.8"/>
+  <text x="122" y="490" font-size="10" fill="#666" font-family="sans-serif">Human gate</text>
+  <rect x="200" y="479" width="12" height="12" rx="2" fill="#F0FDF4" stroke="#16A34A" stroke-width="0.8" stroke-dasharray="4 2"/>
+  <text x="218" y="490" font-size="10" fill="#666" font-family="sans-serif">Optional step</text>
+</svg>
