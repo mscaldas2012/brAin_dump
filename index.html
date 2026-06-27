@@ -238,6 +238,15 @@
     margin: 4rem 0;
   }
 
+  /* ─── PREVIOUS POSTS ─── */
+  .previous-posts { margin-top: 3rem; }
+  .previous-label { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.68rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); padding-bottom: 0.75rem; border-bottom: 1px solid var(--rule); margin-bottom: 1.5rem; }
+  .post-list { list-style: none; }
+  .post-list li { padding: 0.6rem 0; border-bottom: 1px solid var(--rule); font-family: 'Source Serif 4', serif; font-size: 0.95rem; }
+  .post-list li a { color: var(--ink); text-decoration: none; }
+  .post-list li a:hover { color: var(--accent); }
+  .post-list .post-list-date { font-family: 'DM Sans', sans-serif; font-size: 0.72rem; color: var(--muted); margin-right: 0.75rem; letter-spacing: 0.05em; }
+
   /* ─── FOOTER ─── */
   .article-footer {
     max-width: 720px;
@@ -284,7 +293,14 @@
     <div class="month-group">
       <p class="month-label">June</p>
 
-      <a class="post-card" href="2026/06/20260601-sdd-evolution.html">
+      <a class="post-card" href="2026/06/20260627-loops-and-metrics.html">
+        <p class="post-date">Jun 27, 2026</p>
+        <h2 class="post-title">Loops Are Overrated. Metrics Are Not.</h2>
+        <p class="post-desc">Agentic loops are seductive. But until tokens and time are free, human judgment in the loop beats autonomous iteration — and metrics are how you make that work.</p>
+        <span class="post-arrow">→</span>
+      </a>
+
+      <a class="post-card" href="2026/06/20260601-sdd-evolution.html" style="margin-top:1rem;">
         <p class="post-date">Jun 1, 2026</p>
         <h2 class="post-title">Spec-Driven Development: An Evolution, Not a Ladder to Climb</h2>
         <p class="post-desc">A maturity model for AI-driven development — five working levels, plus a sixth on the horizon — and why reaching the top was never the point.</p>
@@ -321,34 +337,24 @@
       </a>
     </div>
 
-    <div class="month-group">
-      <p class="month-label">March</p>
+  </div>
 
-      <a class="post-card" href="2026/03/20260329-the_end_of_software_development.html">
-        <p class="post-date">Mar 29, 2026</p>
-        <h2 class="post-title">The End of Software as We Knew It</h2>
-        <p class="post-desc">The principles we built software development around — reusability, maintainability, architecture — were shaped by human constraints. As AI removes those constraints, the practices built around them will have to change.</p>
-        <span class="post-arrow">→</span>
-      </a>
-
-      <a class="post-card" href="2026/03/20260318-understanding-local-llms.html" style="margin-top:1rem;">
-        <p class="post-date">Mar 18, 2026</p>
-        <h2 class="post-title">Small But Mighty: The Case for Running LLMs Locally</h2>
-        <p class="post-desc">What you actually need to know about small models, quantization, formats, and local runtimes — without the hype.</p>
-        <span class="post-arrow">→</span>
-      </a>
-    </div>
-
-    <div class="month-group">
-      <p class="month-label">February</p>
-
-      <a class="post-card" href="2026/02/20260224-prompt-context-intent.html">
-        <p class="post-date">Feb 24, 2026</p>
-        <h2 class="post-title">Prompt, Context, Intent — The Three Engineering Disciplines of the LLM Era</h2>
-        <p class="post-desc">Every organization adopting LLMs goes through the same three stages. Understanding which discipline you actually need changes everything.</p>
-        <span class="post-arrow">→</span>
-      </a>
-    </div>
+  <div class="previous-posts">
+    <p class="previous-label">Previous Posts</p>
+    <ul class="post-list">
+      <li>
+        <span class="post-list-date">Mar 29, 2026</span>
+        <a href="2026/03/20260329-the_end_of_software_development.html">The End of Software as We Knew It</a>
+      </li>
+      <li>
+        <span class="post-list-date">Mar 18, 2026</span>
+        <a href="2026/03/20260318-understanding-local-llms.html">Small But Mighty: The Case for Running LLMs Locally</a>
+      </li>
+      <li>
+        <span class="post-list-date">Feb 24, 2026</span>
+        <a href="2026/02/20260224-prompt-context-intent.html">Prompt, Context, Intent — The Three Engineering Disciplines of the LLM Era</a>
+      </li>
+    </ul>
   </div>
 
 </main>

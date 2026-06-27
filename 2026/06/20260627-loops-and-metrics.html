@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loops Are Overrated. Metrics Are Not.</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --paper: #faf8f4;
+    --accent: #c4553a;
+    --accent-soft: #e8d5cf;
+    --muted: #6b6560;
+    --rule: #d4cfc8;
+    --highlight: #fff3cd;
+    --code-bg: #2d2a26;
+    --warm1: #c4553a;
+    --warm2: #8a6340;
+    --warm3: #4a7c6f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { font-size: 18px; scroll-behavior: smooth; background: var(--paper); }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: var(--ink);
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(170deg, #1a1a1a 0%, #1e2218 40%, #2a2018 100%);
+    color: #faf8f4;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 20% 50%, rgba(196,85,58,0.15), transparent),
+      radial-gradient(ellipse 500px 500px at 80% 30%, rgba(74,124,111,0.1), transparent),
+      radial-gradient(ellipse 400px 600px at 60% 80%, rgba(138,99,64,0.1), transparent);
+    pointer-events: none;
+  }
+
+  .hero-kicker {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    line-height: 1.1;
+    max-width: 14em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .hero h1 em { font-style: italic; color: var(--accent); }
+
+  .hero-subtitle {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.15rem;
+    font-weight: 300;
+    max-width: 32em;
+    line-height: 1.6;
+    color: rgba(250,248,244,0.7);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .hero-meta {
+    margin-top: 3rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    color: rgba(250,248,244,0.4);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    animation: fadeUp 0.8s 1s forwards;
+  }
+
+  .hero-scroll span {
+    display: block;
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(to bottom, rgba(250,248,244,0.4), transparent);
+    margin: 0 auto;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+
+  .content { max-width: 720px; margin: 0 auto; padding: 5rem 2rem 6rem; }
+  .content p { margin-bottom: 1.4rem; }
+  .content p.lede { font-size: 1.2rem; font-weight: 300; color: var(--muted); line-height: 1.75; margin-bottom: 2.5rem; }
+
+  .section-label { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--warm1); }
+
+  h2 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 2rem; line-height: 1.2; margin-bottom: 1.5rem; }
+
+  .divider { border: none; height: 1px; background: var(--rule); margin: 4rem 0; }
+  .divider.heavy { height: 3px; background: linear-gradient(to right, var(--warm1), var(--warm2), var(--warm3)); margin: 5rem 0; }
+
+  .insight-card { border-left: 4px solid var(--accent); padding: 2rem 2rem 2rem 2.5rem; margin: 2.5rem 0; background: white; border-radius: 0 8px 8px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03); }
+  .insight-card h4 { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.75rem; }
+  .insight-card p { font-size: 0.95rem; margin-bottom: 0.8rem; line-height: 1.65; }
+  .insight-card p:last-child { margin-bottom: 0; }
+
+  blockquote { border-left: 3px solid var(--accent); padding: 0.2rem 0 0.2rem 1.5rem; margin: 2rem 0; font-style: italic; color: var(--muted); font-size: 1.05rem; }
+
+  a { color: var(--warm2); text-decoration: underline; text-decoration-color: var(--accent-soft); text-underline-offset: 2px; }
+  a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.82em; background: #f0ece6; padding: 0.1em 0.35em; border-radius: 3px; }
+
+  ul { margin: 1.5rem 0 1.5rem 1.5rem; }
+  ul li { margin-bottom: 0.75rem; line-height: 1.65; }
+
+  .article-footer { max-width: 720px; margin: 0 auto; padding: 3rem 2rem 5rem; border-top: 1px solid var(--rule); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--muted); text-align: center; line-height: 1.7; }
+
+  .post-nav { max-width: 720px; margin: 0 auto; padding: 2.5rem 2rem; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--muted); }
+  .post-nav a { color: var(--muted); text-decoration: none; letter-spacing: 0.05em; }
+  .post-nav a:hover { color: var(--accent); }
+
+  @media (max-width: 640px) {
+    html { font-size: 16px; }
+    .content { padding: 3rem 1.25rem 4rem; }
+    .insight-card { padding: 1.5rem; }
+    h2 { font-size: 1.65rem; }
+  }
+</style>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "763b29a7634e48e48bbdcb37b13ba83a"}'></script><!-- End Cloudflare Web Analytics -->
+</head>
+<body>
+
+<header class="hero">
+  <p class="hero-kicker">On AI Agents</p>
+  <h1>Loops Are Overrated. <em>Metrics Are Not.</em></h1>
+  <p class="hero-subtitle">Agentic loops are seductive. But until tokens and time are free, human judgment in the loop beats autonomous iteration — and metrics are how you make that work.</p>
+  <p class="hero-meta">June 2026 · 5 min read</p>
+  <div class="hero-scroll"><span></span></div>
+</header>
+
+<article class="content">
+
+  <p class="lede">Everyone is excited about agentic loops right now. The pitch is seductive: you give the agent a goal, it works autonomously until it's done, and you walk away. The agent reasons, acts, checks its own work, and iterates from start to finish.</p>
+
+  <p>I'm not fully buying it.</p>
+
+  <p>Not because loops don't work. They do, sometimes. But there's a cost that doesn't get talked about enough: tokens, time, and control. Until those three things are essentially free, I want to stay close to what my agent is doing.</p>
+
+  <hr class="divider heavy">
+
+  <p class="section-label">The cost of autonomy</p>
+  <h2>The Loop Tax</h2>
+
+  <p>Every iteration of an autonomous loop costs tokens. Every token costs money and latency. More importantly, a looping agent that goes in the wrong direction doesn't just waste one attempt: it compounds the mistake across several, often arriving somewhere you didn't want to go and doing so confidently.</p>
+
+  <p>I've learned to distinguish between tasks I can fully delegate, where I go AFK and let the agent run, and tasks where I want to watch it think. The latter is more common than people admit. Seeing the agent's intermediate steps isn't a sign that you don't trust it. It's a sign that you understand the value of review, even when you're the one doing it.</p>
+
+  <p>Codex has a feature called "Steer": the ability to nudge the agent mid-task without fully stopping and restarting it. I love that idea, and I wish Claude Code had something equivalent. The closest you get there is: stop the task, inject a correction, restart. It kind of works, but it's not the same. True mid-course correction, without losing context, is one of the most underrated features an agentic tool could have. Until it's standard, the best control I've found doesn't come from the tooling. It comes from the workflow.</p>
+
+  <hr class="divider">
+
+  <p class="section-label">A better approach</p>
+  <h2>The Better Path: Give the Agent a Mirror</h2>
+
+  <p>Here's what I've found works better than more looping: give the agent metrics.</p>
+
+  <p>Not vague instructions like "make this cleaner" or "improve the quality." Specific, measurable signals that tell the agent <em>exactly</em> where it fell short, before it tries to fix anything.</p>
+
+  <p>The insight is simple: <strong>flag the problems first, then fix them.</strong> Make the agent generate a diagnostic pass before a remediation pass. This turns an opaque loop into a transparent two-step, and it produces measurably better results.</p>
+
+  <hr class="divider">
+
+  <p class="section-label">For software teams</p>
+  <h2>For Developers: Beyond Tests</h2>
+
+  <p>In software, the standard feedback loop is unit and integration tests. Pass/fail. That's good, but it's incomplete.</p>
+
+  <p>Tests tell you <em>if</em> the code works. They don't tell you <em>how well</em> it's built.</p>
+
+  <p>Add cyclomatic complexity, cognitive complexity, coupling metrics, and duplication percentages on top of your tests. Now you have a richer signal. Feed those scores to the agent explicitly: <em>"This function has a cyclomatic complexity of 18 and a maintainability index of 42. Refactor with those as targets."</em></p>
+
+  <p>A tool like <a href="https://radon.readthedocs.io/" target="_blank" rel="noopener">Radon</a> does this for Python without any inference: it computes cyclomatic complexity and maintainability scores deterministically, at no token cost. Feed those numbers to the agent and it works from a ground truth no prompt can fudge.</p>
+
+  <p>The agent now has a concrete definition of "better." It's not guessing at your intent. It knows whether a refactor actually improved the architecture, not just whether the tests still pass. More importantly, you can decide which tradeoffs to make. That decision stays with you, not with the loop.</p>
+
+  <hr class="divider">
+
+  <p class="section-label">For writers and content creators</p>
+  <h2>For Authors: Prose-Level Diagnostics</h2>
+
+  <p>The same logic holds outside software. I've been writing a book lately. It's outside my comfort zone, and that's the point: it gives me the perspective of someone doing "vibe coding" but for content. You have a goal, you have a collaborator, and you're trying to produce something coherent without fully knowing the rules of the craft.</p>
+
+  <p>The same principle applies. Instead of telling the agent "rewrite this chapter to be better," give it a diagnostic pass first.</p>
+
+  <p>Define your craft rules explicitly, the skills you want the writing to demonstrate, and have the agent scan the text against each one before touching a word:</p>
+
+  <ul>
+    <li><strong>Tone consistency:</strong> does the voice drift? Where?</li>
+    <li><strong>Pacing:</strong> are there sections where momentum stalls?</li>
+    <li><strong>Repetition:</strong> what words, phrases, or ideas are overused?</li>
+    <li><strong>Openings and endings:</strong> do scenes and paragraphs start and end with impact?</li>
+    <li><strong>Flow and transitions:</strong> does the argument or narrative move logically?</li>
+    <li><strong>Argument integrity:</strong> are claims supported? Are there logical gaps?</li>
+  </ul>
+
+  <p>Each of these becomes a measurable output: a list of flagged instances with locations. The agent produces the diagnostic, you review it, you decide what matters, and then you prompt the rewrite against those specific findings.</p>
+
+  <p>This is the difference between asking someone to "clean up a room" and handing them a checklist of what's actually wrong. The checklist produces better work, faster, with fewer surprises.</p>
+
+  <hr class="divider">
+
+  <p class="section-label">The pattern behind the pattern</p>
+  <h2>What This Actually Is</h2>
+
+  <p>It's not a loop. It's a structured two-pass workflow: <strong>diagnose, then fix.</strong> And the human sits between the two passes, reading the diagnosis, deciding what to act on.</p>
+
+  <p>Call it Measure &#8594; Review &#8594; Remediate. Three steps, clearly separated, each with a distinct purpose.</p>
+
+  <p>The Measure pass is cheap. It doesn't even have to come from the agent: for code, deterministic tools measure what needs measuring, leaving the agent to consume the output rather than produce it. For prose, the agent does more of the measuring since language carries ambiguity that code does not. Either way, the output is a structured list of findings: where complexity is too high, where tone drifts, where the argument has a gap. Fast, focused, and brief.</p>
+
+  <p>The Review step is yours. This is the part that loops try to automate, and it's the part that matters most. You read the findings. You decide which ones are real problems and which are false positives. You decide what to prioritize. You bring context the agent doesn't have: the deadline, the audience, the tradeoff you're willing to make between architectural purity and shipping speed. No autonomous loop can make those calls for you. If it tries, you'll spend more time undoing its decisions than you saved by delegating them.</p>
+
+  <div class="insight-card">
+    <h4>This isn't a new idea</h4>
+    <p>GitHub's <a href="https://github.com/github/spec-kit" target="_blank" rel="noopener">Spec Kit</a> bakes it in by design. Its workflow moves through four named phases (specify, plan, tasks, implement), and each phase produces artifacts that a human is expected to review before the next phase begins. That's not a bug in the design, it's the point. The gates are there on purpose. Spec Kit's authors understood that the value isn't in removing the human from the loop; it's in putting the human in the right places in the loop.</p>
+  </div>
+
+  <p>The Remediate pass is where the agent does its best work. Now it's working from a specific brief, not a vague instruction. It knows exactly what to fix and why. The output is targeted, the token cost is proportional to actual work done, and there are no surprises because you shaped the direction before it started.</p>
+
+  <p>That's what loops cut out: human judgment. Loops are optimized for throughput. This approach is optimized for quality and control.</p>
+
+  <p>The agent isn't iterating blindly, hoping to converge. It's giving you information, you're giving it direction, and it's executing with clarity. For a fraction of the tokens, you get a collaboration that outperforms any autonomous spiral.</p>
+
+  <hr class="divider heavy">
+
+  <p class="section-label">The takeaway</p>
+  <h2>The Common Thread</h2>
+
+  <p>There's something worth naming at the prompt level. When you ask an agent to diagnose before it fixes, you're forcing it to separate two cognitive tasks it normally conflates. LLMs are eager to help: they jump to solutions.</p>
+
+  <div class="insight-card">
+    <h4>The key constraint</h4>
+    <p>Asking for a diagnostic first slows that down in a useful way. The agent has to articulate what's wrong before it proposes what's right.</p>
+  </div>
+
+  <p>That constraint almost always produces better analysis, and better analysis produces better fixes.</p>
+
+  <p>Whether you're writing code or writing prose, the principle is the same: the agent produces better output when it first produces an honest account of what's wrong.</p>
+
+  <p>Loops try to automate the judgment. Metrics put it back in your hands.</p>
+
+  <p>I know which one I'd rather have.</p>
+
+</article>
+
+<footer class="article-footer">
+  <p>Written in the spirit of the brain dump: working through ideas by putting them in writing.</p>
+</footer>
+
+<nav class="post-nav">
+  <a href="../../index.html">&#x2190; Home</a>
+  <a href="20260601-sdd-evolution.html">&#x2190; Previous</a>
+</nav>
+
+</body>
+</html>
