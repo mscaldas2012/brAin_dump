@@ -19,3 +19,10 @@ The index.html page should have:
 ## Publishing
 
 To publish a new post, place the HTML file in `/inbox` and run `/post-blog`.
+
+## Git & GitHub
+
+Never use shell `git commit` or `git push` commands — sandbox git lock files cause failures. Always use the GitHub MCP API tools directly:
+- Use `mcp__github__push_files` to commit and push one or more files in a single call
+- Use `mcp__github__get_file_contents` to read current file state from the repo when needed
+- Read file content with the `Read` tool first, then push via the API
