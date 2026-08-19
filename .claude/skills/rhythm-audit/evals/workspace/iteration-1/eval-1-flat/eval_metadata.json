@@ -1,0 +1,8 @@
+{"eval_id": 1, "eval_name": "flat-metronomic-prose", "prompt": "Rhythm audit of deliberately flat, metronomic prose", "assertions": [
+  {"text": "The report runs the analysis script and reports numeric metrics"},
+  {"text": "The report identifies low sentence length CV (below 35%)"},
+  {"text": "The report flags high transition word density"},
+  {"text": "The report flags repeated sentence openers"},
+  {"text": "The overall assessment characterizes the prose as metronomic or flat"},
+  {"text": "The report follows the prescribed format with all sections present"}
+]}

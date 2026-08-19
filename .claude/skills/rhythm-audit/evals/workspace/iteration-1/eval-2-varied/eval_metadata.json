@@ -1,0 +1,8 @@
+{"eval_id": 2, "eval_name": "varied-rhythmic-prose", "prompt": "Rhythm audit of prose with genuine sentence variety", "assertions": [
+  {"text": "The report runs the analysis script and reports numeric metrics"},
+  {"text": "The report identifies a healthy sentence length CV (above 45%)"},
+  {"text": "The report detects the stylistic fragment"},
+  {"text": "The report identifies varied paragraph lengths"},
+  {"text": "The overall assessment is positive — good rhythm, not flat"},
+  {"text": "The report follows the prescribed format with all sections present"}
+]}
