@@ -73,6 +73,72 @@ def _load_skill_prompt(skill_name: str) -> str:
     return text.strip()
 
 
+def _load_skill_step_section(skill_name: str, step_heading_prefix: str) -> str:
+    """Extracts just one `## Step N — ...` section (from its heading up to the
+    next `## Step ...` heading, or end of file) out of a skill's SKILL.md,
+    instead of returning the entire multi-step document. Frontmatter is
+    stripped first, same as _load_skill_prompt."""
+    full_text = _load_skill_prompt(skill_name)
+    heading_re = re.compile(r"^## Step \d+.*$", re.MULTILINE)
+    headings = list(heading_re.finditer(full_text))
+    start = next((m for m in headings if m.group(0).startswith(step_heading_prefix)), None)
+    if start is None:
+        raise PipelineError(
+            type="validation",
+            message=f"could not find a {step_heading_prefix!r} heading in {skill_name}/SKILL.md",
+            attempted=f"extract the {step_heading_prefix!r} section from {skill_name}/SKILL.md",
+            is_retryable=False,
+            recovery=[f"check that {skill_name}/SKILL.md still has a heading starting with {step_heading_prefix!r}"],
+        )
+    later = [m.start() for m in headings if m.start() > start.start()]
+    end = min(later) if later else len(full_text)
+    section = full_text[start.start() : end].strip()
+    # Trim a trailing '---' section divider, if the section ends with one.
+    section = re.sub(r"\n---\s*$", "", section).strip()
+    return section
+
+
+HTML_CONVERSION_SCHEMA = {
+    "name": "html_conversion_result",
+    "description": "The complete standalone HTML document produced by converting the draft.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "html_document": {
+                "type": "string",
+                "description": "The complete standalone HTML document, starting with <!DOCTYPE html> and ending with </html>.",
+            },
+        },
+        "required": ["html_document"],
+    },
+}
+
+
+def validate_html(html: str) -> None:
+    """Guards against a truncated or otherwise malformed model-generated HTML
+    document silently propagating through ensure_beacon/wire_navigation/
+    extract_title_and_description — those functions no-op or fall back to
+    empty strings on missing anchors rather than signalling anything went
+    wrong, so this is the one place that actually checks the document is
+    structurally complete before it's written anywhere."""
+    missing = [tag for tag in ("</html>", "</body>", "</head>") if tag not in html]
+    title_m = re.search(r"<title>\s*(.*?)\s*</title>", html, re.DOTALL)
+    if not title_m or not title_m.group(1).strip():
+        missing.append("a non-empty <title>...</title>")
+    if missing:
+        raise PipelineError(
+            type="validation",
+            message=f"generated HTML failed structural validation, missing: {', '.join(missing)}",
+            attempted="validate LLM-generated HTML structure",
+            is_retryable=False,
+            details={"html_preview": html[:500]},
+            recovery=[
+                "retry the HTML conversion call",
+                "inspect the raw model output for truncation or a malformed response",
+            ],
+        )
+
+
 def convert_markdown_to_html(markdown_text: str) -> str:
     """Delegates prose->HTML conversion to Claude using post-blog's Step 3
     rules verbatim, plus the most recent published post as a CSS/structure
@@ -81,22 +147,26 @@ def convert_markdown_to_html(markdown_text: str) -> str:
     posts = scan_posts()
     reference_html = posts[0].path.read_text(encoding="utf-8") if posts else ""
     system_prompt = (
-        _load_skill_prompt("post-blog")
+        _load_skill_step_section("post-blog", "## Step 3")
         + "\n\nYou are being invoked as just Step 3 (HTML conversion) of this skill. "
-        "Output ONLY the complete standalone HTML document — no commentary, no code fences."
+        "Call the html_conversion_result tool with the complete standalone HTML document — "
+        "no commentary, no code fences."
     )
     user_content = (
         f"Reference post to copy CSS/structure from verbatim:\n\n{reference_html}\n\n"
         f"---\n\nMarkdown draft to convert:\n\n{markdown_text}"
     )
     client = anthropic.Anthropic()
+    max_tokens = 8192
     attempted = f"convert draft markdown to HTML via Anthropic messages.create (model={MODEL})"
     try:
         response = client.messages.create(
             model=MODEL,
-            max_tokens=8192,
+            max_tokens=max_tokens,
             system=system_prompt,
             messages=[{"role": "user", "content": user_content}],
+            tools=[HTML_CONVERSION_SCHEMA],
+            tool_choice={"type": "tool", "name": HTML_CONVERSION_SCHEMA["name"]},
         )
     except (anthropic.APIConnectionError, anthropic.RateLimitError, anthropic.InternalServerError) as e:
         raise PipelineError(
@@ -114,10 +184,32 @@ def convert_markdown_to_html(markdown_text: str) -> str:
             details={"status_code": e.status_code},
         ) from e
 
-    html = "".join(b.text for b in response.content if b.type == "text").strip()
-    if html.startswith("```"):
-        html = re.sub(r"^```[a-zA-Z]*\n", "", html)
-        html = re.sub(r"\n```$", "", html)
+    if response.stop_reason == "max_tokens":
+        raise PipelineError(
+            type="validation",
+            message="HTML conversion was truncated by the max_tokens limit",
+            attempted=attempted,
+            is_retryable=False,
+            details={"max_tokens": max_tokens},
+            recovery=["increase max_tokens for this call and retry — a blind retry at the same limit will fail identically"],
+        )
+
+    html = None
+    for block in response.content:
+        if block.type == "tool_use":
+            html = block.input.get("html_document", "")
+            break
+    if html is None:
+        raise PipelineError(
+            type="validation",
+            message=f"model did not return the forced tool call {HTML_CONVERSION_SCHEMA['name']!r}",
+            attempted=attempted,
+            is_retryable=True,
+            recovery=["retry — a forced tool_choice call omitting the tool call is unusual and often transient"],
+        )
+
+    html = html.strip()
+    validate_html(html)
     return html
 
 
@@ -297,13 +389,27 @@ def build_index_html(current_index_html: str, all_posts: list[PostInfo]) -> str:
 
 
 def _repo_slug() -> str:
-    url = subprocess.run(
-        ["git", "-C", str(BLOG_ROOT), "remote", "get-url", "origin"],
-        capture_output=True, text=True, check=True,
-    ).stdout.strip()
+    attempted = "read the origin remote URL via git"
+    try:
+        url = subprocess.run(
+            ["git", "-C", str(BLOG_ROOT), "remote", "get-url", "origin"],
+            capture_output=True, text=True, check=True,
+        ).stdout.strip()
+    except subprocess.CalledProcessError as e:
+        raise PipelineError(
+            type="permission", message=str(e), attempted=attempted, is_retryable=False,
+            details={"stderr": e.stderr},
+            recovery=["confirm this directory is a git repo with an 'origin' remote configured"],
+        ) from e
     m = re.search(r"github\.com[:/](.+?)(?:\.git)?$", url)
     if not m:
-        raise RuntimeError(f"could not parse GitHub repo slug from remote url: {url}")
+        raise PipelineError(
+            type="validation",
+            message=f"could not parse GitHub repo slug from remote url: {url}",
+            attempted="parse the origin remote URL",
+            is_retryable=False,
+            recovery=["set 'origin' to a github.com URL"],
+        )
     return m.group(1)
 
 

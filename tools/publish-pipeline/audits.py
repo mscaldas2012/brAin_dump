@@ -51,10 +51,11 @@ def _load_skill_prompt(skill_name: str) -> str:
 
 def _forced_tool_call(system_prompt: str, draft_text: str, tool_schema: dict[str, Any]) -> dict[str, Any]:
     attempted = f"call {tool_schema['name']!r} via Anthropic messages.create (model={MODEL})"
+    max_tokens = 4096
     try:
         response = _client_singleton().messages.create(
             model=MODEL,
-            max_tokens=4096,
+            max_tokens=max_tokens,
             system=system_prompt,
             messages=[{"role": "user", "content": draft_text}],
             tools=[tool_schema],
@@ -75,6 +76,16 @@ def _forced_tool_call(system_prompt: str, draft_text: str, tool_schema: dict[str
             type="validation", message=str(e), attempted=attempted, is_retryable=False,
             details={"status_code": e.status_code},
         ) from e
+
+    if response.stop_reason == "max_tokens":
+        raise PipelineError(
+            type="validation",
+            message=f"response was truncated by the max_tokens limit ({max_tokens} tokens) before completing the tool call {tool_schema['name']!r}",
+            attempted=attempted,
+            is_retryable=False,
+            details={"max_tokens": max_tokens, "stop_reason": response.stop_reason},
+            recovery=["increase max_tokens for this call and retry — a blind retry at the same limit will truncate identically"],
+        )
 
     for block in response.content:
         if block.type == "tool_use":

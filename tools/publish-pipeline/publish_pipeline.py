@@ -47,68 +47,121 @@ def _pick_draft(explicit: str | None) -> Path:
     if explicit:
         path = Path(explicit).resolve()
         if not path.exists():
-            sys.exit(f"error: {path} does not exist")
+            raise PipelineError(
+                type="validation",
+                message=f"{path} does not exist",
+                attempted=f"read explicit draft path {path}",
+                is_retryable=False,
+                recovery=["pass a valid path"],
+            )
         return path
     if not INBOX.exists():
-        sys.exit(f"error: no draft given and {INBOX} does not exist")
+        raise PipelineError(
+            type="validation",
+            message=f"no draft given and {INBOX} does not exist",
+            attempted="look for a draft in /inbox",
+            is_retryable=False,
+            recovery=[f"create {INBOX} and place a draft in it, or pass an explicit path"],
+        )
     candidates = sorted(
         (p for p in INBOX.iterdir() if p.is_file() and not p.name.startswith(".")),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
     if not candidates:
-        sys.exit(f"error: no draft given and {INBOX} is empty")
+        raise PipelineError(
+            type="validation",
+            message=f"no draft given and {INBOX} is empty",
+            attempted="look for a draft in /inbox",
+            is_retryable=False,
+            recovery=["place a draft in /inbox, or pass an explicit path"],
+        )
+    if len(candidates) > 1:
+        print(f"Multiple drafts found in {INBOX} — pick one explicitly:")
+        for c in candidates:
+            print(f"  {c}")
+        raise PipelineError(
+            type="validation",
+            message=f"ambiguous draft — {len(candidates)} candidates in {INBOX}",
+            attempted="pick the most likely draft from /inbox with no explicit path given",
+            is_retryable=False,
+            details={"candidates": [str(c) for c in candidates]},
+            recovery=[f"re-run with an explicit path, e.g. `python publish_pipeline.py {candidates[0]}`"],
+        )
     return candidates[0]
 
 
 def run_audits(draft_text: str, slug: str) -> dict:
-    """Runs the three audits in sequence, persisting each via gate.record_audit
-    as soon as it succeeds. If one raises, the ones that already succeeded
-    stay recorded (a re-run only needs to redo what actually failed — see
-    gate.check_gate's "missing" list), and the PipelineError carries the
-    completed-so-far results as partial_results rather than losing them."""
+    """Attempts all three audits independently, persisting each via
+    gate.record_audit as soon as it succeeds. The three audits don't depend
+    on one another's results, so a failure in one must not prevent the
+    others from being attempted (rhythm-audit in particular is a free, local,
+    deterministic subprocess check with no reason to be blocked by a
+    transient failure in an LLM-backed audit). If any fail, a single
+    aggregate PipelineError is raised after all three have been attempted;
+    the successes stay recorded via gate.record_audit either way, so a
+    re-run only needs to redo what actually failed — see gate.check_gate's
+    "missing" list."""
     print("Running audits...")
     content_hash = gate.compute_hash(draft_text)
     completed: dict = {}
+    failed: dict[str, PipelineError] = {}
 
     print("  voice-check...")
     try:
         voice_result = audits.run_voice_check(draft_text)
     except PipelineError as e:
-        e.partial_results = {**(e.partial_results or {}), "audits_completed": list(completed)}
-        e.attempted = f"audit_voice: {e.attempted}"
-        raise
-    gate.record_audit(slug, content_hash, "voice_check", voice_result)
-    completed["voice_check"] = voice_result
-    print(f"    score: {voice_result['score']}/10, {len(voice_result['anti_patterns'])} anti-pattern(s)")
+        failed["voice_check"] = e
+        print(f"    failed: {e.message}")
+    else:
+        gate.record_audit(slug, content_hash, "voice_check", voice_result)
+        completed["voice_check"] = voice_result
+        print(f"    score: {voice_result['score']}/10, {len(voice_result['anti_patterns'])} anti-pattern(s)")
 
     print("  prose-linter...")
     try:
         prose_result = audits.run_prose_lint(draft_text)
     except PipelineError as e:
-        e.partial_results = {**(e.partial_results or {}), "audits_completed": list(completed)}
-        e.attempted = f"audit_prose: {e.attempted}"
-        raise
-    gate.record_audit(slug, content_hash, "prose_linter", prose_result)
-    completed["prose_linter"] = prose_result
-    print(
-        f"    {prose_result['total_flags']} flag(s), "
-        f"{prose_result['tier1_signature_words']} Tier-1 signature word(s)"
-    )
+        failed["prose_linter"] = e
+        print(f"    failed: {e.message}")
+    else:
+        gate.record_audit(slug, content_hash, "prose_linter", prose_result)
+        completed["prose_linter"] = prose_result
+        print(
+            f"    {prose_result['total_flags']} flag(s), "
+            f"{prose_result['tier1_signature_words']} Tier-1 signature word(s)"
+        )
 
     print("  rhythm-audit...")
     try:
         rhythm_result = audits.run_rhythm_audit(draft_text)
     except PipelineError as e:
-        e.partial_results = {**(e.partial_results or {}), "audits_completed": list(completed)}
-        e.attempted = f"audit_rhythm: {e.attempted}"
-        raise
-    gate.record_audit(slug, content_hash, "rhythm_audit", rhythm_result)
-    completed["rhythm_audit"] = rhythm_result
-    high = [f for f in rhythm_result.get("flags", []) if f.get("severity") == "high"]
-    print(f"    {len(rhythm_result.get('flags', []))} flag(s), {len(high)} high-severity")
+        failed["rhythm_audit"] = e
+        print(f"    failed: {e.message}")
+    else:
+        gate.record_audit(slug, content_hash, "rhythm_audit", rhythm_result)
+        completed["rhythm_audit"] = rhythm_result
+        high = [f for f in rhythm_result.get("flags", []) if f.get("severity") == "high"]
+        print(f"    {len(rhythm_result.get('flags', []))} flag(s), {len(high)} high-severity")
 
-    return completed
+    if not failed:
+        return completed
+
+    all_retryable = all(e.is_retryable for e in failed.values())
+    raise PipelineError(
+        type="transient" if all_retryable else "validation",
+        message=(
+            f"{len(failed)} of 3 audits failed: {', '.join(failed)}; "
+            f"{len(completed)} succeeded: {', '.join(completed)}"
+        ),
+        attempted="ran voice_check, prose_linter, rhythm_audit independently (each attempted regardless of others' outcome)",
+        is_retryable=all_retryable,
+        partial_results={
+            "audits_completed": list(completed),
+            "audits_failed": {name: str(err) for name, err in failed.items()},
+        },
+        recovery=["re-run — gate.record_audit already persisted the successful audits, so a re-run will only need to redo what failed"],
+    )
 
 
 def handle_escalation(slug: str, draft_text: str, result: gate.GateResult) -> bool:
@@ -146,6 +199,8 @@ def do_publish(source_path: Path, draft_text: str, dry_run: bool, audit_results:
         new_html = publish.ensure_beacon(draft_text)
     else:
         new_html = publish.ensure_beacon(publish.convert_markdown_to_html(draft_text))
+
+    publish.validate_html(new_html)
 
     existing_posts = publish.scan_posts()
     previous = publish.find_previous_post(existing_posts, dest.name[:8])
@@ -200,15 +255,16 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="Skip the GitHub push; write output locally.")
     args = parser.parse_args()
 
-    source_path = _pick_draft(args.draft)
-    slug = _slug_for(source_path)
-    draft_text = source_path.read_text(encoding="utf-8")
-
-    print(f"Draft: {source_path}")
-    print(f"Slug: {slug}\n")
-
+    slug = "unknown"
     audit_results: dict = {}
     try:
+        source_path = _pick_draft(args.draft)
+        slug = _slug_for(source_path)
+        draft_text = source_path.read_text(encoding="utf-8")
+
+        print(f"Draft: {source_path}")
+        print(f"Slug: {slug}\n")
+
         audit_results = run_audits(draft_text, slug)
 
         result = gate.check_gate(slug, draft_text, CONFIG)
