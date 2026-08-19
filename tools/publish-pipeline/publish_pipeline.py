@@ -166,12 +166,16 @@ def do_publish(source_path: Path, draft_text: str, dry_run: bool, audit_results:
     if previous is not None and updated_previous_html is not None:
         changed_files[previous.rel_from_root] = updated_previous_html
 
+    # Persist to the local worktree checkout first, regardless of dry_run —
+    # this is the on-disk record of what's being published, independent of
+    # whether the GitHub push below succeeds.
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(new_html, encoding="utf-8")
+    index_path.write_text(new_index_html, encoding="utf-8")
+    if previous is not None and updated_previous_html is not None:
+        previous.path.write_text(updated_previous_html, encoding="utf-8")
+
     if dry_run:
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(new_html, encoding="utf-8")
-        index_path.write_text(new_index_html, encoding="utf-8")
-        if previous is not None and updated_previous_html is not None:
-            previous.path.write_text(updated_previous_html, encoding="utf-8")
         return {"published": True, "path": str(new_post.rel_from_root), "dry_run": True}
 
     base_branch = os.environ.get("GITHUB_BASE_BRANCH", "main")
