@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Insurance Policy I Stopped Paying</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --paper: #faf8f4;
+    --accent: #c4553a;
+    --accent-soft: #e8d5cf;
+    --muted: #6b6560;
+    --rule: #d4cfc8;
+    --highlight: #fff3cd;
+    --code-bg: #2d2a26;
+    --warm1: #c4553a;
+    --warm2: #8a6340;
+    --warm3: #4a7c6f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { font-size: 18px; scroll-behavior: smooth; background: var(--paper); }
+
+  body {
+    font-family: 'Source Serif 4', Georgia, serif;
+    color: var(--ink);
+    line-height: 1.72;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(170deg, #1a1a1a 0%, #1e2218 40%, #2a2018 100%);
+    color: #faf8f4;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 20% 50%, rgba(196,85,58,0.15), transparent),
+      radial-gradient(ellipse 500px 500px at 80% 30%, rgba(74,124,111,0.1), transparent),
+      radial-gradient(ellipse 400px 600px at 60% 80%, rgba(138,99,64,0.1), transparent);
+    pointer-events: none;
+  }
+
+  .hero-kicker {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    line-height: 1.1;
+    max-width: 14em;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .hero h1 em { font-style: italic; color: var(--accent); }
+
+  .hero-subtitle {
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.15rem;
+    font-weight: 300;
+    max-width: 32em;
+    line-height: 1.6;
+    color: rgba(250,248,244,0.7);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .hero-meta {
+    margin-top: 3rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    color: rgba(250,248,244,0.4);
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+  }
+
+  .hero-scroll {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    animation: fadeUp 0.8s 1s forwards;
+  }
+
+  .hero-scroll span {
+    display: block;
+    width: 1px;
+    height: 48px;
+    background: linear-gradient(to bottom, rgba(250,248,244,0.4), transparent);
+    margin: 0 auto;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.8; } }
+
+  .content { max-width: 720px; margin: 0 auto; padding: 5rem 2rem 6rem; }
+  .content p { margin-bottom: 1.4rem; }
+  .content p.lede { font-size: 1.2rem; font-weight: 300; color: var(--muted); line-height: 1.75; margin-bottom: 2.5rem; }
+
+  .section-label { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--warm1); }
+
+  h2 { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 2rem; line-height: 1.2; margin-bottom: 1.5rem; }
+
+  .divider { border: none; height: 1px; background: var(--rule); margin: 4rem 0; }
+  .divider.heavy { height: 3px; background: linear-gradient(to right, var(--warm1), var(--warm2), var(--warm3)); margin: 5rem 0; }
+
+  .insight-card { border-left: 4px solid var(--accent); padding: 2rem 2rem 2rem 2.5rem; margin: 2.5rem 0; background: white; border-radius: 0 8px 8px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03); }
+  .insight-card h4 { font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.05em; color: var(--accent); margin-bottom: 0.75rem; }
+  .insight-card p { font-size: 0.95rem; margin-bottom: 0.8rem; line-height: 1.65; }
+  .insight-card p:last-child { margin-bottom: 0; }
+
+  blockquote { border-left: 3px solid var(--accent); padding: 0.2rem 0 0.2rem 1.5rem; margin: 2rem 0; font-style: italic; color: var(--muted); font-size: 1.05rem; }
+
+  a { color: var(--warm2); text-decoration: underline; text-decoration-color: var(--accent-soft); text-underline-offset: 2px; }
+  a:hover { color: var(--accent); text-decoration-color: var(--accent); }
+
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.82em; background: #f0ece6; padding: 0.1em 0.35em; border-radius: 3px; }
+
+  ul { margin: 1.5rem 0 1.5rem 1.5rem; }
+  ul li { margin-bottom: 0.75rem; line-height: 1.65; }
+
+  .article-footer { max-width: 720px; margin: 0 auto; padding: 3rem 2rem 5rem; border-top: 1px solid var(--rule); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; color: var(--muted); text-align: center; line-height: 1.7; }
+
+  .post-nav { max-width: 720px; margin: 0 auto; padding: 2.5rem 2rem; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--muted); }
+  .post-nav a { color: var(--muted); text-decoration: none; letter-spacing: 0.05em; }
+  .post-nav a:hover { color: var(--accent); }
+
+  @media (max-width: 640px) {
+    html { font-size: 16px; }
+    .content { padding: 3rem 1.25rem 4rem; }
+    .insight-card { padding: 1.5rem; }
+    h2 { font-size: 1.65rem; }
+  }
+</style>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "763b29a7634e48e48bbdcb37b13ba83a"}'></script><!-- End Cloudflare Web Analytics -->
+</head>
+<body>
+
+<header class="hero">
+  <p class="hero-kicker">On Software Architecture</p>
+  <h1>The Insurance Policy I Stopped Paying</h1>
+  <p class="hero-subtitle">For most of my career I treated vendor lock-in as something close to a moral failure. Twenty-plus years later, I can report on how that bet paid off.</p>
+  <p class="hero-meta">January 2025 · 6 min read</p>
+  <div class="hero-scroll"><span></span></div>
+</header>
+
+<article class="content">
+
+  <p class="lede">If an abstraction kept me out of a vendor's gravity well, I used it. I wrote SQL that would run anywhere instead of Oracle-specific code, or Informix-specific, or SQL Server-specific. Stored procedures made me nervous. If a query could stay generic, that was a win. CloudFormation or Terraform? Terraform, obviously — same infrastructure, no single cloud holding the deed. The same instinct went everywhere: queues, caches, object storage, auth. Wrap it. Keep the seam clean. Stay portable.</p>
+
+  <p>The reasoning was simple. If we ever had to move, we'd thank ourselves.</p>
+
+  <p>Twenty-plus years later, I can report on how that bet paid off. It didn't.</p>
+
+  <hr class="divider heavy">
+
+  <p class="section-label">Where the hedge failed</p>
+  <h2>Two ways it failed</h2>
+
+  <p>The first way: the migration never came.</p>
+
+  <p>In most systems I've built, the database we launched on was the database we retired on. The catastrophe I was buying insurance against (SQL Server to Oracle, Oracle to something cheaper) never arrived. What actually arrived was version upgrades. Same engine, newer release, and the generic-SQL discipline bought us nothing there that a decent test suite wouldn't have. I paid a premium every sprint for a fire that never broke out.</p>
+
+  <p>The second way is more interesting, because it's the case where I should have been vindicated.</p>
+
+  <p>We did have to migrate from AWS to Azure once. This was back when Azure was well behind Amazon: the managed services weren't at parity and half the ergonomics we relied on simply didn't exist yet. We had abstraction layers. They helped at the margins. But the heavy part of that migration was never in the layer we'd built: the identity model, the networking assumptions, the failure behavior of managed services, the operational muscle memory of an entire team. Our abstractions covered the parts that were cheap to move anyway. Everything expensive stayed expensive.</p>
+
+  <div class="insight-card">
+    <h4>The pattern worth naming</h4>
+    <p>Generalization protects you from the portion of the problem you were already going to survive.</p>
+  </div>
+
+  <hr class="divider">
+
+  <p class="section-label">The real purchase</p>
+  <h2>What I was actually buying</h2>
+
+  <p>Portability was the story I told. The real purchase was something else.</p>
+
+  <p>Writing code was slow and expensive. A data access layer was a quarter of someone's life. Re-implementing an infrastructure stack against a new provider was a project with a name and a budget line. When rewriting is that costly, paying a little complexity tax up front to avoid a catastrophic rewrite later is a rational trade. The hedge was never against Oracle. It was against the cost of my own keyboard.</p>
+
+  <p>That's worth saying plainly, because the trade only works while that cost holds.</p>
+
+  <hr class="divider heavy">
+
+  <p class="section-label">Same pattern, different decade</p>
+  <h2>And I'm doing it again</h2>
+
+  <p>I caught myself last month building an agent with a provider abstraction in it. Swap OpenAI for Gemini for Claude in a heartbeat. Either LangChain or my own thin wrapper — written with an AI's help, because it's 2026 and that's how the wrapper gets written now.</p>
+
+  <p>Same instinct. Same story. Same premium.</p>
+
+  <p>And the premium is real. Two parts to it.</p>
+
+  <p>The obvious one is complexity. Every abstraction is a layer someone has to read, debug, and keep current, and provider APIs move fast enough now that the wrapper is never quite done.</p>
+
+  <p>The one that costs more is the tuning. Native is where the good stuff lives — prompt caching, structured output, the specific shape of a provider's tool-calling, each model's context layout, reasoning controls that behave differently on every family. A generic layer standardizes on the intersection of what everyone supports, which means it standardizes on the least capable common denominator and hides the rest. You end up with an agent that runs on three providers and is tuned for none of them. You end up with a universal remote: it turns on every TV and controls none of them well.</p>
+
+  <hr class="divider">
+
+  <p class="section-label">The premise that changed</p>
+  <h2>The number that moved</h2>
+
+  <p>The premise underneath twenty years of my architectural caution was that code is expensive. That premise is the thing that changed.</p>
+
+  <p>If a native integration is a day of work instead of a quarter, portability stops being an architecture problem and becomes a regeneration problem. You don't need a translation layer that speaks every provider badly. You need a clear interface at the edge of your application and the willingness to rewrite what's behind it when the day comes. Rewriting an OpenAI-native adapter as a Claude-native one is now closer to an afternoon than a migration.</p>
+
+  <p>I'm not arguing for spaghetti. The boundary still matters — name the seam, keep provider details on one side of it, don't let vendor types leak into your domain model. That part is cheap and it's always been worth it. What I'm giving up is the deep translation layer underneath the seam, the one that promises the switch will be free and delivers a system that's mediocre everywhere instead.</p>
+
+  <p>Go native, use the knobs, and tune the thing until it's actually good on the provider you picked.</p>
+
+  <p>Twenty years of premiums, and I never filed the claim. I'm done paying that one.</p>
+
+</article>
+
+<footer class="article-footer">
+  <p>Written in the spirit of the brain dump: working through ideas by putting them in writing.</p>
+</footer>
+
+<nav class="post-nav">
+  <a href="../../index.html">← Home</a>
+  <a href="../06/20260627-loops-and-metrics.html">← Previous</a>
+</nav>
+</body>
+</html>
