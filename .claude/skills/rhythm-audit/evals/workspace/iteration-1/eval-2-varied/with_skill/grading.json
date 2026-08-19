@@ -1,0 +1,8 @@
+{"expectations": [
+  {"text": "The report runs the analysis script and reports numeric metrics", "passed": true, "evidence": "Reports CV=64.8%, paragraph range 142% of mean, em-dash density 1.48/100 — all from script"},
+  {"text": "The report identifies a healthy sentence length CV (above 45%)", "passed": true, "evidence": "CV=64.8% in 'Good variety' band; range 4-41 words noted"},
+  {"text": "The report detects the stylistic fragment", "passed": true, "evidence": "2 fragments detected: 'The gamble pays off.' and 'Ferrante withholds the frame.'"},
+  {"text": "The report identifies varied paragraph lengths", "passed": true, "evidence": "Paragraph range 142% of mean, well above 80% threshold; range 9-57 words"},
+  {"text": "The overall assessment is positive — good rhythm, not flat", "passed": true, "evidence": "Assessment: strong rhythm, intentional movement, CV at top of 'Good variety' band"},
+  {"text": "The report follows the prescribed format with all sections present", "passed": true, "evidence": "Key Metrics table, distribution, flags, rhythm summary, recommendations all present"}
+], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}

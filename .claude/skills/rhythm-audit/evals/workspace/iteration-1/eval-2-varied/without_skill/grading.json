@@ -1,0 +1,8 @@
+{"expectations": [
+  {"text": "The report runs the analysis script and reports numeric metrics", "passed": false, "evidence": "No script run; no CV, no transition rate, no numeric metrics"},
+  {"text": "The report identifies a healthy sentence length CV (above 45%)", "passed": false, "evidence": "Qualitatively notes good variety but gives no CV or variance measurement"},
+  {"text": "The report detects the stylistic fragment", "passed": true, "evidence": "Identifies 'Not a dramatic one.' and 'The gamble pays off.' as short fragment-style sentences"},
+  {"text": "The report identifies varied paragraph lengths", "passed": true, "evidence": "Correctly describes 7 paragraphs varying from 1 to 4 sentences, notes deliberate distribution"},
+  {"text": "The overall assessment is positive — good rhythm, not flat", "passed": true, "evidence": "Summary: 'Strong, controlled rhythm... genuine and purposeful'"},
+  {"text": "The report follows the prescribed format with all sections present", "passed": false, "evidence": "Custom structure; no Key Metrics table, no quantitative distribution, no numeric flags"}
+], "summary": {"passed": 3, "failed": 3, "total": 6, "pass_rate": 0.5}}

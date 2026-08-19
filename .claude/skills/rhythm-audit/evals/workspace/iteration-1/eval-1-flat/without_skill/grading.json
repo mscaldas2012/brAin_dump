@@ -1,0 +1,8 @@
+{"expectations": [
+  {"text": "The report runs the analysis script and reports numeric metrics", "passed": false, "evidence": "No script run; no numeric metrics (CV, transition rate, etc.) — qualitative analysis only"},
+  {"text": "The report identifies low sentence length CV (below 35%)", "passed": false, "evidence": "No CV computed; describes sentences as '4-6 words' but no variance metric"},
+  {"text": "The report flags high transition word density", "passed": true, "evidence": "Section 3 correctly identifies Moreover/Furthermore/Consequently/Additionally as a tell"},
+  {"text": "The report flags repeated sentence openers", "passed": true, "evidence": "Section 2 identifies 'It was' repetition and Subject+Verb monotony"},
+  {"text": "The overall assessment characterizes the prose as metronomic or flat", "passed": true, "evidence": "Overall verdict: 'Yes — the prose is metronomically flat'"},
+  {"text": "The report follows the prescribed format with all sections present", "passed": false, "evidence": "Uses custom headings; no Key Metrics table, no Distribution section, no quantitative flags"}
+], "summary": {"passed": 3, "failed": 3, "total": 6, "pass_rate": 0.5}}

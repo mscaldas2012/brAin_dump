@@ -1,0 +1,8 @@
+{"expectations": [
+  {"text": "The report runs the analysis script and reports numeric metrics", "passed": true, "evidence": "Reports CV=11.1%, mean=4.5 words, transition rate=4.4/100, all from script JSON output"},
+  {"text": "The report identifies low sentence length CV (below 35%)", "passed": true, "evidence": "CV=11.1% explicitly flagged as HIGH severity metronomic"},
+  {"text": "The report flags high transition word density", "passed": true, "evidence": "Transition rate 4.4 per 100 words, HIGH severity, examples: Moreover, Furthermore, Consequently, Additionally"},
+  {"text": "The report flags repeated sentence openers", "passed": true, "evidence": "Repeated openers: 'the' (8x), 'it' (3x), 'they' (3x) flagged MEDIUM"},
+  {"text": "The overall assessment characterizes the prose as metronomic or flat", "passed": true, "evidence": "Report characterizes CV of 11.1% as 'about as metronomic as prose gets'"},
+  {"text": "The report follows the prescribed format with all sections present", "passed": true, "evidence": "Key Metrics table, distribution, flags, rhythm summary, recommendations all present"}
+], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}}

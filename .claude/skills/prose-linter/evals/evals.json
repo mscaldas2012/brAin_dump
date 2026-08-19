@@ -1,0 +1,72 @@
+{
+  "skill_name": "prose-linter",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Please audit this piece for LLM tells and AI writing patterns:\n\n---\n\nThe Art of Deep Work: Navigating Complexity in a Distracted World\n\nIn today's fast-paced world, it is worth noting that the ability to focus deeply has become not only a rare skill but also a truly transformative one. Whether you're a student, a professional, or an entrepreneur, the challenges of maintaining concentration are both nuanced and multifaceted. This article seeks to delve into the nature of deep work, underscore its importance, and elucidate how you can cultivate it in your own life.\n\nIt's important to remember that deep work is not simply about sitting at a desk for long periods. It's not about quantity of hours — it's about quality of attention. At its core, deep work is about human connection: connection to the work itself, to a sense of purpose, and to the profound satisfaction that meaningful effort can unlock.\n\nMoreover, the landscape of modern productivity has shifted dramatically. Furthermore, digital tools that were once designed to foster collaboration have, in many ways, become obstacles to it. Consequently, we find ourselves navigating a paradox: the very technologies that were meant to enhance our capabilities now fragment our attention in ways that are, frankly, groundbreaking in their capacity for disruption.\n\nIt goes without saying that the solution lies in cultivating intentional habits. Crucially, these habits must be both robust and dynamic — adaptable to the changing demands of a world in constant flux. It is important to note that there is no one-size-fits-all approach; the realm of personal productivity is inherently personal.\n\nSo where does that leave us? As we have seen, deep work requires three things: discipline, environment, and purpose. Not only does discipline provide the scaffolding, but it also serves as the testament to our commitment. The key to unlocking this potential is not found in productivity apps or morning routines — it's found within ourselves.\n\nIn conclusion, the tapestry of deep work is woven from strands of intention, consistency, and self-awareness. Moving forward, the most pivotal thing you can do is simply to begin. Whether you succeed or fail in your first attempts, the journey itself is, at its core, truly transformative.",
+      "expected_output": "A Prose Audit Report that flags: heavy signature word usage (delve, underscore, elucidate, cultivate, tapestry, realm, nuanced, multifaceted, transformative, pivotal, robust, dynamic, foster, navigate, unlock, moving forward, groundbreaking), transition overload (moreover, furthermore, consequently, crucially), filler phrases (it's worth noting, it's important to remember, it goes without saying, in today's fast-paced world, as we have seen, in conclusion), syntactic patterns (em-dashes, 'It's not X it's Y', 'Not only X but also Y', rhetorical question transition, false binary, tricolon), structural flags (restated intro, summary conclusion, formulaic sign-off), and tonal tells. Priority fixes should reflect the density of the problem.",
+      "files": [],
+      "expectations": [
+        "The report flags 'delve' as a signature word",
+        "The report flags 'tapestry' as a signature word",
+        "The report flags 'moreover', 'furthermore', and 'consequently' as transition overload",
+        "The report flags 'In today's fast-paced world' as a filler phrase",
+        "The report flags the em-dash overuse pattern",
+        "The report flags 'It's not about X — it's about Y' or similar contrarian construction",
+        "The report flags 'Not only X but also Y' construction",
+        "The report flags 'In conclusion' as a formulaic sign-off",
+        "The report includes a Priority fixes section with at least 3 items",
+        "The report follows the specified format with all category sections present"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Can you lint this essay draft for AI tells? I want to know what's giving it away.\n\n---\n\nWhat novelists can teach us about time\n\nFiction writers have always understood something that business writers tend to miss: time is not neutral on the page. A sentence can last a paragraph. A decade can vanish in a clause. The manipulation of pace — speeding through the forgettable, lingering on the charged — is one of the most powerful tools in a writer's kit.\n\nNon-fiction writers often forget this. They write chronologically because events happened chronologically, which is a perfectly reasonable approach if your goal is to be accurate and completely unreadable. The reader doesn't experience time the way it happened. They experience the time of reading, which is different, and which the writer controls entirely.\n\nIt's worth noting that this is why memoir is so much harder than it looks. The memoirist must navigate two timelines simultaneously: the time of the events, and the time of the telling, with the narrator's present-day understanding casting its shadow backward. Novelists do this instinctively; essayists and journalists often don't.\n\nConsider what happens when a writer lingers. Proust's madeleine sequence — essentially a page spent on a bite of cake — works because the reader is made to slow down alongside the narrator. The prose enacts what it describes. This is not merely a nuanced technique; it is fundamentally how the form communicates.\n\nMoreover, the reverse is equally powerful. A chapter that covers fifteen years in three sentences isn't lazy — it's a statement. Those years didn't matter, or they mattered so much that the narrator can't yet touch them. The speed is the meaning.\n\nThe practical takeaway: when you're writing anything long, ask where you're going slow and where you're going fast, and ask whether those choices are deliberate. Most writers default to a kind of mid-tempo cruise that smooths over everything equally. The result is prose that is thorough, comprehensive, and utterly unmemorable.",
+      "expected_output": "A Prose Audit Report that identifies a moderate number of tells: 'It's worth noting that', 'navigate' (metaphorical), 'nuanced', 'moreover', 'comprehensive', and the em-dash pattern. The report should also recognize the piece's genuine strengths — it has voice, original observations, and structural variety — so the overall characterization should be balanced. It should NOT over-flag the piece as heavily LLM-generated. Priority fixes should be specific and limited.",
+      "files": [],
+      "expectations": [
+        "The report flags 'It's worth noting that' as a filler phrase",
+        "The report flags 'navigate' (metaphorical use) or 'nuanced' as signature words",
+        "The report flags 'moreover' as a transition",
+        "The report flags 'comprehensive' as a signature word or notes the ending cliché",
+        "The report's overall characterization is moderate/mixed, NOT describing the piece as heavily LLM-generated",
+        "The Priority fixes section contains 2-4 items (not an overwhelming list)",
+        "The report follows the specified format with all category sections present"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Does this read like AI? Flag anything that seems like an LLM tell.\n\n---\n\nNotes on revision\n\nThe first draft is for finding out what you're writing about. This is Joan Didion's idea, or something like it, and it's the most useful thing I know about the work.\n\nMost writers treat the first draft as a rough version of the final thing. They try to get it right — correct sentences, working arguments, the right word. This is almost always a mistake. It makes the writing slow and anxious, and worse, it closes off possibilities before you've had a chance to discover them. You can't revise your way out of the wrong idea. You have to write your way to the right one.\n\nThe second draft is where the real decisions get made. By then you know what survives. You know which sentences were there to get you to the next sentence, and which ones you'd actually fight for. You can delete the scaffolding.\n\nProfessional writers tend to revise more than beginners, not less. Beginners think revision is what you do when something went wrong. Professionals know revision is the work. The first draft just gives you something to revise.\n\nOne concrete thing: read your draft aloud before you touch it. The ear catches what the eye misses — the sentence that runs out of steam halfway through, the word that keeps appearing, the paragraph that's doing the same job as the paragraph before it. You don't need an editor for this. You need fifteen minutes and a quiet room.\n\nThe other concrete thing: cut the first paragraph. Not always, but often enough that it's worth trying. Writers warm up on the page the same way speakers clear their throats. The real opening is usually the second paragraph.",
+      "expected_output": "A Prose Audit Report showing minimal LLM tells. The piece has strong voice, sentence fragments, varied rhythm, a specific attribution (Joan Didion), and no signature words. The report may flag the single em-dash or note 'it's worth trying' as borderline, but the overall assessment should be that this does not read like AI. The Priority fixes should be minimal (1-2 at most) or the report should note that the piece is clean.",
+      "files": [],
+      "expectations": [
+        "The report's overall characterization indicates this is clean or minimally flagged",
+        "Most category sections return 'None detected' or minimal instances",
+        "The report does NOT flag 'it's worth trying' as an LLM tell (it's contextually different from 'it's worth noting that')",
+        "The report notes the presence of sentence fragments as a positive signal (or notes 'Fragments present' under structural flags)",
+        "The Priority fixes section has 0-2 items",
+        "The report follows the specified format with all category sections present"
+      ]
+    }
+    ,{
+      "id": 4,
+      "prompt": "Can you audit this fiction excerpt for LLM tells?\n\n---\n\nChapter Three\n\nElena had long dark hair and piercing blue eyes that seemed to see right through people. She stood at the window, watching the rain fall against the glass. It was a dark and stormy evening, and the weather seemed to mirror the turmoil she felt inside.\n\n\"I don't understand why you did it,\" she said softly, turning to face Marcus.\n\nMarcus crossed his arms. He felt a deep wave of anger wash over him. \"Because I had no choice,\" he replied defensively.\n\nShe looked away. He uncrossed his arms. She crossed to the table. He watched her.\n\n\"There's always a choice,\" she retorted sharply. \"As you know, Marcus, the protocol requires explicit authorization before any transfer of funds. You were aware of that when you signed the agreement.\"\n\n\"Elena—\"\n\n\"Don't.\" She held up her hand firmly.\n\nSuddenly, the door burst open. It was Director Calloway, and the expression on his face told Elena everything she needed to know. Her heart raced. A shiver ran down her spine. She couldn't help but notice how his eyes met hers across the room before sliding to Marcus with unmistakable fury.\n\n\"Both of you,\" Calloway intoned gravely, \"in my office. Now.\"\n\nElena wondered if she had made the right choice in trusting Marcus. She thought about everything that had led to this moment — the late nights, the whispered conversations, the promises. Perhaps loyalty was more complicated than she had once believed. Perhaps trust itself was a kind of gamble, a tapestry of hope woven against the dark uncertainty of human nature.\n\nMarcus exhaled deeply. He nodded reluctantly. He reached for his jacket. He straightened his collar. \"Let's go,\" he murmured quietly.\n\nThe walk down the hallway felt like an eternity. Every step seemed to carry the weight of what they had done, the consequences that were now, undeniably, beginning to unfold.",
+      "expected_output": "A Prose Audit Report that identifies the genre as fiction, applies the Fiction-Specific Tells section, and flags: generic physical description (Elena's hair/eyes), pathetic fallacy (dark stormy weather mirroring turmoil), adverb-tagged dialogue (said softly, replied defensively, retorted sharply, murmured quietly, intoned gravely), said bookisms (retorted, intoned, murmured), expository dialogue (As you know, Marcus...), emotional over-explanation (deep wave of anger, wondered if she had made the right choice), repetitive action beats (She looked away. He uncrossed his arms. She crossed...; Marcus exhaled. He nodded. He reached. He straightened.), romance clichés (heart raced, shiver ran down her spine, eyes met hers), 'Suddenly' transition, 'tapestry' as signature word, 'deeply'/'reluctantly' as hollow adverbs. The report should use the full format including the Fiction-Specific Tells section.",
+      "files": [],
+      "expectations": [
+        "The report identifies the genre as fiction",
+        "The report includes the Fiction-Specific Tells section",
+        "The report flags adverb-tagged dialogue (softly, defensively, sharply, gravely, quietly)",
+        "The report flags said bookisms (retorted, intoned, murmured)",
+        "The report flags the expository dialogue ('As you know, Marcus...')",
+        "The report flags emotional over-explanation ('felt a deep wave of anger', 'wondered if she had made the right choice')",
+        "The report flags repetitive action beats",
+        "The report flags romance clichés (heart raced, shiver down her spine, eyes met hers)",
+        "The report flags 'Suddenly' as a transition tell",
+        "The report flags 'tapestry' as a Tier 1 signature word",
+        "The report flags pathetic fallacy (weather mirroring turmoil)",
+        "The report flags generic physical description (Elena's hair and eyes)"
+      ]
+    }
+  ]
+}

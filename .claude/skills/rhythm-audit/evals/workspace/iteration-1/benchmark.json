@@ -1,0 +1,86 @@
+{
+  "metadata": {
+    "skill_name": "rhythm-audit",
+    "skill_path": "/Users/m/projects/personal/writing_skills/Writing Skills/skills/rhythm-audit",
+    "timestamp": "2026-06-28T00:00:00Z",
+    "evals_run": [1, 2],
+    "runs_per_configuration": 1
+  },
+  "runs": [
+    {
+      "eval_id": 1, "eval_name": "flat-metronomic-prose", "configuration": "with_skill", "run_number": 1,
+      "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 91.4, "tokens": 22748, "tool_calls": 7, "errors": 0},
+      "expectations": [
+        {"text": "Runs analysis script and reports numeric metrics", "passed": true, "evidence": "CV=11.1%, transition rate=4.4/100 from script"},
+        {"text": "Identifies low CV below 35%", "passed": true, "evidence": "CV=11.1%, HIGH severity flag"},
+        {"text": "Flags high transition density", "passed": true, "evidence": "4.4/100 words, 4 instances named"},
+        {"text": "Flags repeated openers", "passed": true, "evidence": "'the' 8x, 'it' 3x, 'they' 3x"},
+        {"text": "Overall: metronomic/flat", "passed": true, "evidence": "'about as metronomic as prose gets'"},
+        {"text": "Follows prescribed format", "passed": true, "evidence": "All sections present"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 1, "eval_name": "flat-metronomic-prose", "configuration": "without_skill", "run_number": 1,
+      "result": {"pass_rate": 0.5, "passed": 3, "failed": 3, "total": 6, "time_seconds": 93.9, "tokens": 19972, "tool_calls": 3, "errors": 0},
+      "expectations": [
+        {"text": "Runs analysis script and reports numeric metrics", "passed": false, "evidence": "No script run; qualitative only"},
+        {"text": "Identifies low CV below 35%", "passed": false, "evidence": "No CV computed"},
+        {"text": "Flags high transition density", "passed": true, "evidence": "Identifies transitions correctly"},
+        {"text": "Flags repeated openers", "passed": true, "evidence": "Notes 'It was' repetition and opener monotony"},
+        {"text": "Overall: metronomic/flat", "passed": true, "evidence": "'metronomically flat' verdict"},
+        {"text": "Follows prescribed format", "passed": false, "evidence": "Custom structure, no metrics table"}
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 2, "eval_name": "varied-rhythmic-prose", "configuration": "with_skill", "run_number": 1,
+      "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 59.8, "tokens": 20954, "tool_calls": 6, "errors": 0},
+      "expectations": [
+        {"text": "Runs analysis script and reports numeric metrics", "passed": true, "evidence": "CV=64.8%, paragraph range 142%, em-dash 1.48/100"},
+        {"text": "Identifies healthy CV above 45%", "passed": true, "evidence": "CV=64.8% in 'Good variety' band"},
+        {"text": "Detects stylistic fragment", "passed": true, "evidence": "2 fragments identified"},
+        {"text": "Identifies varied paragraph lengths", "passed": true, "evidence": "Range 142% of mean, 9-57 words"},
+        {"text": "Overall: positive/good rhythm", "passed": true, "evidence": "Strong rhythm, CV at top of Good band"},
+        {"text": "Follows prescribed format", "passed": true, "evidence": "All sections present"}
+      ],
+      "notes": ["One legitimate flag: em-dash density 1.48/100 — skill correctly notes this is defensible in context"]
+    },
+    {
+      "eval_id": 2, "eval_name": "varied-rhythmic-prose", "configuration": "without_skill", "run_number": 1,
+      "result": {"pass_rate": 0.5, "passed": 3, "failed": 3, "total": 6, "time_seconds": 80.0, "tokens": 19478, "tool_calls": 4, "errors": 0},
+      "expectations": [
+        {"text": "Runs analysis script and reports numeric metrics", "passed": false, "evidence": "No script run"},
+        {"text": "Identifies healthy CV above 45%", "passed": false, "evidence": "No CV metric"},
+        {"text": "Detects stylistic fragment", "passed": true, "evidence": "Notes short sentences as pivots"},
+        {"text": "Identifies varied paragraph lengths", "passed": true, "evidence": "Correctly describes paragraph variation"},
+        {"text": "Overall: positive/good rhythm", "passed": true, "evidence": "'Strong, controlled rhythm'"},
+        {"text": "Follows prescribed format", "passed": false, "evidence": "Custom structure, no metrics"}
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0},
+      "time_seconds": {"mean": 75.6, "stddev": 15.8, "min": 59.8, "max": 91.4},
+      "tokens": {"mean": 21851, "stddev": 897, "min": 20954, "max": 22748}
+    },
+    "without_skill": {
+      "pass_rate": {"mean": 0.5, "stddev": 0.0, "min": 0.5, "max": 0.5},
+      "time_seconds": {"mean": 86.9, "stddev": 6.9, "min": 80.0, "max": 93.9},
+      "tokens": {"mean": 19725, "stddev": 247, "min": 19478, "max": 19972}
+    },
+    "delta": {
+      "pass_rate": "+0.50",
+      "time_seconds": "-11.3",
+      "tokens": "+2126"
+    }
+  },
+  "notes": [
+    "The key differentiator is the Python script: with_skill always gets numeric metrics (CV, rates, distributions); without_skill gets qualitative observations only",
+    "Without-skill qualitative analysis is actually good at the editorial interpretation — it just lacks the measurement layer",
+    "With_skill achieves 100% pass rate on both evals — the script + format together are highly effective",
+    "The skill is slightly faster than without_skill on the varied prose eval (60s vs 80s)"
+  ]
+}

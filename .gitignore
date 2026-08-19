@@ -1,0 +1,7 @@
+.DS_Store
+tools/publish-pipeline/.env
+tools/publish-pipeline/state/
+tools/publish-pipeline/reports/
+tools/publish-pipeline/.venv/
+tools/publish-pipeline/__pycache__/
+__pycache__/
