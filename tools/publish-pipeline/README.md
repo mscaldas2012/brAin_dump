@@ -83,11 +83,20 @@ Claude Code produces — but isn't guaranteed to match exactly.
 
 ## GitHub push
 
-Uses the Git Data API (`publish.push_to_github`) to build one commit covering
-every changed file (new post, updated previous post's nav, `index.html`) in a
-single atomic push — not one commit per file. Reads the repo slug from
-`git remote get-url origin` and the branch from `GITHUB_BRANCH` (defaults to
-`main`).
+Publishing opens a PR rather than pushing straight to `main`. Uses the Git
+Data API (`publish.commit_to_branch`) to build one commit covering every
+changed file (new post, updated previous post's nav, `index.html`) based on
+the current tip of the base branch, force-pushed to a per-slug branch
+(`publish/<slug>`) — creating it if it doesn't exist yet, updating it in
+place on a re-run. `publish.open_or_update_pull_request` then opens a PR from
+that branch into the base branch, or reuses the existing open one if this
+slug already has one. The PR body includes the audit summary that gated the
+publish. Reads the repo slug from `git remote get-url origin`; the base
+branch comes from `GITHUB_BASE_BRANCH` (defaults to `main`).
+
+The source file is deleted from `/inbox` once the PR's branch is pushed
+(the draft is safely committed on GitHub at that point) — merging the PR is
+a separate, manual step.
 
 ## Verification
 

@@ -307,12 +307,10 @@ def _repo_slug() -> str:
     return m.group(1)
 
 
-def push_to_github(changed_files: dict[str, str], commit_message: str, branch: str = "main") -> str:
-    """changed_files: {repo-relative path: new content}. Returns the commit sha.
-
-    Uses the Git Data API to build one tree/commit covering all files, so this
-    lands as a single commit rather than one per file.
-    """
+def _github_context() -> tuple[str, str, Any]:
+    """Returns (api_base_url, repo_slug, call_fn). call_fn wraps requests.request
+    with auth headers and PipelineError translation, shared by every GitHub
+    API call site in this module."""
     try:
         token = os.environ["GITHUB_TOKEN"]
     except KeyError as e:
@@ -325,9 +323,14 @@ def push_to_github(changed_files: dict[str, str], commit_message: str, branch: s
     api = f"https://api.github.com/repos/{repo}"
     headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
 
-    def _call(method: str, url: str, attempted: str, partial: dict[str, Any] | None = None, **kw) -> requests.Response:
+    def _call(
+        method: str, url: str, attempted: str, partial: dict[str, Any] | None = None,
+        not_found_ok: bool = False, **kw,
+    ) -> requests.Response | None:
         try:
             resp = requests.request(method, url, headers=headers, timeout=30, **kw)
+            if not_found_ok and resp.status_code == 404:
+                return None
             resp.raise_for_status()
             return resp
         except requests.exceptions.ConnectionError as e:
@@ -353,8 +356,25 @@ def push_to_github(changed_files: dict[str, str], commit_message: str, branch: s
                 partial_results=partial, details={"status_code": status, "body": e.response.text[:2000] if e.response is not None else None},
             ) from e
 
-    ref = _call("GET", f"{api}/git/ref/heads/{branch}", f"read ref heads/{branch}")
-    base_commit_sha = ref.json()["object"]["sha"]
+    return api, repo, _call
+
+
+def commit_to_branch(
+    changed_files: dict[str, str], commit_message: str, base_branch: str, target_branch: str
+) -> str:
+    """changed_files: {repo-relative path: new content}. Returns the new commit sha.
+
+    Builds one tree/commit (via the Git Data API, so this lands as a single
+    commit rather than one per file) based on the *tip of base_branch* — not
+    the tip of target_branch — so every run starts from the latest base branch
+    state. target_branch is created if it doesn't exist yet, or force-updated
+    if it does (this tool owns that branch; it's not meant for anyone else to
+    commit to independently).
+    """
+    api, _repo, _call = _github_context()
+
+    base_ref = _call("GET", f"{api}/git/ref/heads/{base_branch}", f"read ref heads/{base_branch}")
+    base_commit_sha = base_ref.json()["object"]["sha"]
 
     base_commit = _call("GET", f"{api}/git/commits/{base_commit_sha}", "read base commit")
     base_tree_sha = base_commit.json()["tree"]["sha"]
@@ -384,9 +404,41 @@ def push_to_github(changed_files: dict[str, str], commit_message: str, branch: s
     )
     new_commit_sha = commit.json()["sha"]
 
-    _call(
-        "PATCH", f"{api}/git/refs/heads/{branch}", f"update ref heads/{branch}",
-        partial={"commit_sha_created_but_not_pointed_to": new_commit_sha},
-        json={"sha": new_commit_sha},
-    )
+    target_ref_url = f"{api}/git/refs/heads/{target_branch}"
+    existing = _call("GET", target_ref_url, f"check for existing branch {target_branch}", not_found_ok=True)
+    if existing is None:
+        _call(
+            "POST", f"{api}/git/refs", f"create branch {target_branch}",
+            partial={"commit_sha_created_but_not_pointed_to": new_commit_sha},
+            json={"ref": f"refs/heads/{target_branch}", "sha": new_commit_sha},
+        )
+    else:
+        _call(
+            "PATCH", target_ref_url, f"update ref heads/{target_branch}",
+            partial={"commit_sha_created_but_not_pointed_to": new_commit_sha},
+            json={"sha": new_commit_sha, "force": True},
+        )
     return new_commit_sha
+
+
+def open_or_update_pull_request(target_branch: str, base_branch: str, title: str, body: str) -> str:
+    """Returns the PR's html_url. If a PR from target_branch to base_branch is
+    already open, returns that one instead of creating a duplicate — pushing
+    to target_branch (commit_to_branch, above) already updated its contents,
+    so there's nothing else to do for a re-run."""
+    api, repo, _call = _github_context()
+    owner = repo.split("/")[0]
+
+    existing = _call(
+        "GET", f"{api}/pulls?head={owner}:{target_branch}&state=open&base={base_branch}",
+        "check for an existing open PR",
+    )
+    matches = existing.json()
+    if matches:
+        return matches[0]["html_url"]
+
+    created = _call(
+        "POST", f"{api}/pulls", f"open PR {target_branch} -> {base_branch}",
+        json={"title": title, "head": target_branch, "base": base_branch, "body": body},
+    )
+    return created.json()["html_url"]

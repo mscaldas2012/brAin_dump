@@ -123,7 +123,23 @@ def handle_escalation(slug: str, draft_text: str, result: gate.GateResult) -> bo
     return False
 
 
-def do_publish(source_path: Path, draft_text: str, dry_run: bool) -> dict:
+def _pr_body(audit_results: dict, gate_reason: str) -> str:
+    lines = ["Opened automatically by the publish pipeline. Audit summary:", ""]
+    vc = audit_results.get("voice_check")
+    if vc:
+        lines.append(f"- **voice-check**: {vc['score']}/10, {len(vc.get('anti_patterns', []))} anti-pattern(s)")
+    pl = audit_results.get("prose_linter")
+    if pl:
+        lines.append(f"- **prose-linter**: {pl['total_flags']} flag(s), {pl['tier1_signature_words']} Tier-1")
+    ra = audit_results.get("rhythm_audit")
+    if ra:
+        lines.append(f"- **rhythm-audit**: {len(ra.get('flags', []))} flag(s)")
+    lines.append("")
+    lines.append(f"Gate: {gate_reason}")
+    return "\n".join(lines)
+
+
+def do_publish(source_path: Path, draft_text: str, dry_run: bool, audit_results: dict, gate_reason: str) -> dict:
     dest, year, month, slug = publish.derive_destination(source_path)
 
     if source_path.suffix.lower() == ".html":
@@ -158,18 +174,20 @@ def do_publish(source_path: Path, draft_text: str, dry_run: bool) -> dict:
             previous.path.write_text(updated_previous_html, encoding="utf-8")
         return {"published": True, "path": str(new_post.rel_from_root), "dry_run": True}
 
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    commit_sha = publish.push_to_github(
-        changed_files, commit_message=f"Publish: {title}", branch=os.environ.get("GITHUB_BRANCH", "main")
+    base_branch = os.environ.get("GITHUB_BASE_BRANCH", "main")
+    target_branch = f"publish/{slug}"
+    commit_sha = publish.commit_to_branch(
+        changed_files, commit_message=f"Publish: {title}", base_branch=base_branch, target_branch=target_branch
     )
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(new_html, encoding="utf-8")
-    index_path.write_text(new_index_html, encoding="utf-8")
-    if previous is not None and updated_previous_html is not None:
-        previous.path.write_text(updated_previous_html, encoding="utf-8")
+    pr_url = publish.open_or_update_pull_request(
+        target_branch, base_branch, title=f"Publish: {title}", body=_pr_body(audit_results, gate_reason)
+    )
     source_path.unlink()
 
-    return {"published": True, "path": str(new_post.rel_from_root), "commit_sha": commit_sha}
+    return {
+        "published": True, "path": str(new_post.rel_from_root),
+        "commit_sha": commit_sha, "branch": target_branch, "pr_url": pr_url,
+    }
 
 
 def main() -> None:
@@ -209,8 +227,10 @@ def main() -> None:
             sys.exit(1)
 
         print("\nGate passed. Publishing...")
-        outcome = do_publish(source_path, draft_text, args.dry_run)
+        outcome = do_publish(source_path, draft_text, args.dry_run, audit_results, result.reason)
         print("\n" + report.render(slug, audit_results, result.status, result.reason, escalation_record, outcome))
+        if outcome.get("pr_url"):
+            print(f"\nPR: {outcome['pr_url']}")
     except PipelineError as e:
         print(f"\n{e.render()}")
         outcome = {"published": False, "reason": f"[{e.type}] {e.message}"}

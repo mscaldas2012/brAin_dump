@@ -53,9 +53,11 @@ def render(
     if outcome.get("published"):
         lines.append(f"- Published: `{outcome['path']}`")
         if outcome.get("commit_sha"):
-            lines.append(f"- Commit: `{outcome['commit_sha']}`")
+            lines.append(f"- Commit: `{outcome['commit_sha']}` on branch `{outcome.get('branch', '?')}`")
+        if outcome.get("pr_url"):
+            lines.append(f"- PR: {outcome['pr_url']}")
         if outcome.get("dry_run"):
-            lines.append("- (dry-run — not pushed to GitHub)")
+            lines.append("- (dry-run — not pushed to GitHub, no branch/PR created)")
     else:
         lines.append(f"- Not published: {outcome.get('reason', 'gate did not pass')}")
 
