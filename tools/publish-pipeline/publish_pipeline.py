@@ -29,6 +29,7 @@ import audits  # noqa: E402
 import gate  # noqa: E402
 import publish  # noqa: E402
 import report  # noqa: E402
+from errors import PipelineError  # noqa: E402
 
 import json
 
@@ -61,29 +62,53 @@ def _pick_draft(explicit: str | None) -> Path:
 
 
 def run_audits(draft_text: str, slug: str) -> dict:
+    """Runs the three audits in sequence, persisting each via gate.record_audit
+    as soon as it succeeds. If one raises, the ones that already succeeded
+    stay recorded (a re-run only needs to redo what actually failed — see
+    gate.check_gate's "missing" list), and the PipelineError carries the
+    completed-so-far results as partial_results rather than losing them."""
     print("Running audits...")
     content_hash = gate.compute_hash(draft_text)
+    completed: dict = {}
 
     print("  voice-check...")
-    voice_result = audits.run_voice_check(draft_text)
+    try:
+        voice_result = audits.run_voice_check(draft_text)
+    except PipelineError as e:
+        e.partial_results = {**(e.partial_results or {}), "audits_completed": list(completed)}
+        e.attempted = f"audit_voice: {e.attempted}"
+        raise
     gate.record_audit(slug, content_hash, "voice_check", voice_result)
+    completed["voice_check"] = voice_result
     print(f"    score: {voice_result['score']}/10, {len(voice_result['anti_patterns'])} anti-pattern(s)")
 
     print("  prose-linter...")
-    prose_result = audits.run_prose_lint(draft_text)
+    try:
+        prose_result = audits.run_prose_lint(draft_text)
+    except PipelineError as e:
+        e.partial_results = {**(e.partial_results or {}), "audits_completed": list(completed)}
+        e.attempted = f"audit_prose: {e.attempted}"
+        raise
     gate.record_audit(slug, content_hash, "prose_linter", prose_result)
+    completed["prose_linter"] = prose_result
     print(
         f"    {prose_result['total_flags']} flag(s), "
         f"{prose_result['tier1_signature_words']} Tier-1 signature word(s)"
     )
 
     print("  rhythm-audit...")
-    rhythm_result = audits.run_rhythm_audit(draft_text)
+    try:
+        rhythm_result = audits.run_rhythm_audit(draft_text)
+    except PipelineError as e:
+        e.partial_results = {**(e.partial_results or {}), "audits_completed": list(completed)}
+        e.attempted = f"audit_rhythm: {e.attempted}"
+        raise
     gate.record_audit(slug, content_hash, "rhythm_audit", rhythm_result)
+    completed["rhythm_audit"] = rhythm_result
     high = [f for f in rhythm_result.get("flags", []) if f.get("severity") == "high"]
     print(f"    {len(rhythm_result.get('flags', []))} flag(s), {len(high)} high-severity")
 
-    return {"voice_check": voice_result, "prose_linter": prose_result, "rhythm_audit": rhythm_result}
+    return completed
 
 
 def handle_escalation(slug: str, draft_text: str, result: gate.GateResult) -> bool:
@@ -160,30 +185,42 @@ def main() -> None:
     print(f"Draft: {source_path}")
     print(f"Slug: {slug}\n")
 
-    audit_results = run_audits(draft_text, slug)
+    audit_results: dict = {}
+    try:
+        audit_results = run_audits(draft_text, slug)
 
-    result = gate.check_gate(slug, draft_text, CONFIG)
-    escalation_record: dict | None = None
+        result = gate.check_gate(slug, draft_text, CONFIG)
+        escalation_record: dict | None = None
 
-    if result.status == "needs_escalation":
-        acknowledged = handle_escalation(slug, draft_text, result)
-        escalation_record = {"acknowledged": acknowledged}
-        if acknowledged:
-            result = gate.check_gate(slug, draft_text, CONFIG)
-        else:
-            outcome = {"published": False, "reason": "author declined to confirm flagged voice drift"}
+        if result.status == "needs_escalation":
+            acknowledged = handle_escalation(slug, draft_text, result)
+            escalation_record = {"acknowledged": acknowledged}
+            if acknowledged:
+                result = gate.check_gate(slug, draft_text, CONFIG)
+            else:
+                outcome = {"published": False, "reason": "author declined to confirm flagged voice drift"}
+                print("\n" + report.render(slug, audit_results, result.status, result.reason, escalation_record, outcome))
+                sys.exit(1)
+
+        if not result.passed:
+            print(f"\nGate blocked: {result.reason}")
+            outcome = {"published": False, "reason": result.reason}
             print("\n" + report.render(slug, audit_results, result.status, result.reason, escalation_record, outcome))
             sys.exit(1)
 
-    if not result.passed:
-        print(f"\nGate blocked: {result.reason}")
-        outcome = {"published": False, "reason": result.reason}
+        print("\nGate passed. Publishing...")
+        outcome = do_publish(source_path, draft_text, args.dry_run)
         print("\n" + report.render(slug, audit_results, result.status, result.reason, escalation_record, outcome))
+    except PipelineError as e:
+        print(f"\n{e.render()}")
+        outcome = {"published": False, "reason": f"[{e.type}] {e.message}"}
+        print(
+            "\n"
+            + report.render(
+                slug, audit_results, "error", str(e), None, outcome,
+            )
+        )
         sys.exit(1)
-
-    print("\nGate passed. Publishing...")
-    outcome = do_publish(source_path, draft_text, args.dry_run)
-    print("\n" + report.render(slug, audit_results, result.status, result.reason, escalation_record, outcome))
 
 
 if __name__ == "__main__":

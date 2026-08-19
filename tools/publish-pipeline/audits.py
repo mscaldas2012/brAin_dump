@@ -23,6 +23,8 @@ from typing import Any
 
 import anthropic
 
+from errors import PipelineError
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SKILLS_DIR = REPO_ROOT / ".claude" / "skills"
 MODEL = os.environ.get("AUDIT_MODEL", "claude-sonnet-4-5-20250929")
@@ -48,18 +50,42 @@ def _load_skill_prompt(skill_name: str) -> str:
 
 
 def _forced_tool_call(system_prompt: str, draft_text: str, tool_schema: dict[str, Any]) -> dict[str, Any]:
-    response = _client_singleton().messages.create(
-        model=MODEL,
-        max_tokens=4096,
-        system=system_prompt,
-        messages=[{"role": "user", "content": draft_text}],
-        tools=[tool_schema],
-        tool_choice={"type": "tool", "name": tool_schema["name"]},
-    )
+    attempted = f"call {tool_schema['name']!r} via Anthropic messages.create (model={MODEL})"
+    try:
+        response = _client_singleton().messages.create(
+            model=MODEL,
+            max_tokens=4096,
+            system=system_prompt,
+            messages=[{"role": "user", "content": draft_text}],
+            tools=[tool_schema],
+            tool_choice={"type": "tool", "name": tool_schema["name"]},
+        )
+    except (anthropic.APIConnectionError, anthropic.RateLimitError, anthropic.InternalServerError) as e:
+        raise PipelineError(
+            type="transient", message=str(e), attempted=attempted, is_retryable=True,
+            recovery=["retry the same call after a short backoff"],
+        ) from e
+    except anthropic.AuthenticationError as e:
+        raise PipelineError(
+            type="permission", message=str(e), attempted=attempted, is_retryable=False,
+            recovery=["check ANTHROPIC_API_KEY in .env"],
+        ) from e
+    except anthropic.APIStatusError as e:
+        raise PipelineError(
+            type="validation", message=str(e), attempted=attempted, is_retryable=False,
+            details={"status_code": e.status_code},
+        ) from e
+
     for block in response.content:
         if block.type == "tool_use":
             return block.input
-    raise RuntimeError(f"model did not return the forced tool call {tool_schema['name']!r}")
+    raise PipelineError(
+        type="validation",
+        message=f"model did not return the forced tool call {tool_schema['name']!r}",
+        attempted=attempted,
+        is_retryable=True,
+        recovery=["retry — a forced tool_choice call omitting the tool call is unusual and often transient"],
+    )
 
 
 VOICE_CHECK_SCHEMA = {
@@ -176,6 +202,7 @@ def run_rhythm_audit(draft_text: str) -> dict[str, Any]:
     with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8") as f:
         f.write(draft_text)
         temp_path = f.name
+    attempted = f"run {script} against the draft text"
     try:
         proc = subprocess.run(
             [sys.executable, str(script), temp_path],
@@ -183,6 +210,18 @@ def run_rhythm_audit(draft_text: str) -> dict[str, Any]:
             text=True,
             check=True,
         )
+    except subprocess.CalledProcessError as e:
+        raise PipelineError(
+            type="validation", message="rhythm-audit's analyze.py exited non-zero",
+            attempted=attempted, is_retryable=False, details={"stderr": e.stderr},
+        ) from e
     finally:
         Path(temp_path).unlink(missing_ok=True)
-    return json.loads(proc.stdout)
+
+    try:
+        return json.loads(proc.stdout)
+    except json.JSONDecodeError as e:
+        raise PipelineError(
+            type="validation", message="rhythm-audit's analyze.py produced non-JSON output",
+            attempted=attempted, is_retryable=False, details={"stdout": proc.stdout[:2000]},
+        ) from e

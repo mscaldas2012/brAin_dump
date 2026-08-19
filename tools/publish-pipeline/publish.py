@@ -16,9 +16,12 @@ import subprocess
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
+from typing import Any
 
 import anthropic
 import requests
+
+from errors import PipelineError
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BLOG_ROOT = REPO_ROOT
@@ -87,12 +90,30 @@ def convert_markdown_to_html(markdown_text: str) -> str:
         f"---\n\nMarkdown draft to convert:\n\n{markdown_text}"
     )
     client = anthropic.Anthropic()
-    response = client.messages.create(
-        model=MODEL,
-        max_tokens=8192,
-        system=system_prompt,
-        messages=[{"role": "user", "content": user_content}],
-    )
+    attempted = f"convert draft markdown to HTML via Anthropic messages.create (model={MODEL})"
+    try:
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=8192,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_content}],
+        )
+    except (anthropic.APIConnectionError, anthropic.RateLimitError, anthropic.InternalServerError) as e:
+        raise PipelineError(
+            type="transient", message=str(e), attempted=attempted, is_retryable=True,
+            recovery=["retry the same call after a short backoff"],
+        ) from e
+    except anthropic.AuthenticationError as e:
+        raise PipelineError(
+            type="permission", message=str(e), attempted=attempted, is_retryable=False,
+            recovery=["check ANTHROPIC_API_KEY in .env"],
+        ) from e
+    except anthropic.APIStatusError as e:
+        raise PipelineError(
+            type="validation", message=str(e), attempted=attempted, is_retryable=False,
+            details={"status_code": e.status_code},
+        ) from e
+
     html = "".join(b.text for b in response.content if b.type == "text").strip()
     if html.startswith("```"):
         html = re.sub(r"^```[a-zA-Z]*\n", "", html)
@@ -292,44 +313,80 @@ def push_to_github(changed_files: dict[str, str], commit_message: str, branch: s
     Uses the Git Data API to build one tree/commit covering all files, so this
     lands as a single commit rather than one per file.
     """
-    token = os.environ["GITHUB_TOKEN"]
+    try:
+        token = os.environ["GITHUB_TOKEN"]
+    except KeyError as e:
+        raise PipelineError(
+            type="permission", message="GITHUB_TOKEN is not set", attempted="read GITHUB_TOKEN from environment",
+            is_retryable=False, recovery=["set GITHUB_TOKEN in .env"],
+        ) from e
+
     repo = _repo_slug()
     api = f"https://api.github.com/repos/{repo}"
     headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
 
-    ref = requests.get(f"{api}/git/ref/heads/{branch}", headers=headers, timeout=30)
-    ref.raise_for_status()
+    def _call(method: str, url: str, attempted: str, partial: dict[str, Any] | None = None, **kw) -> requests.Response:
+        try:
+            resp = requests.request(method, url, headers=headers, timeout=30, **kw)
+            resp.raise_for_status()
+            return resp
+        except requests.exceptions.ConnectionError as e:
+            raise PipelineError(
+                type="transient", message=str(e), attempted=attempted, is_retryable=True,
+                partial_results=partial, recovery=["retry — likely a network blip"],
+            ) from e
+        except requests.exceptions.Timeout as e:
+            raise PipelineError(
+                type="transient", message=str(e), attempted=attempted, is_retryable=True,
+                partial_results=partial, recovery=["retry — the GitHub API request timed out"],
+            ) from e
+        except requests.exceptions.HTTPError as e:
+            status = e.response.status_code if e.response is not None else None
+            if status in (401, 403):
+                raise PipelineError(
+                    type="permission", message=str(e), attempted=attempted, is_retryable=False,
+                    partial_results=partial, details={"status_code": status},
+                    recovery=["check GITHUB_TOKEN has push access to this repo"],
+                ) from e
+            raise PipelineError(
+                type="validation", message=str(e), attempted=attempted, is_retryable=False,
+                partial_results=partial, details={"status_code": status, "body": e.response.text[:2000] if e.response is not None else None},
+            ) from e
+
+    ref = _call("GET", f"{api}/git/ref/heads/{branch}", f"read ref heads/{branch}")
     base_commit_sha = ref.json()["object"]["sha"]
 
-    base_commit = requests.get(f"{api}/git/commits/{base_commit_sha}", headers=headers, timeout=30)
-    base_commit.raise_for_status()
+    base_commit = _call("GET", f"{api}/git/commits/{base_commit_sha}", "read base commit")
     base_tree_sha = base_commit.json()["tree"]["sha"]
 
     tree_entries = []
+    blobs_created: dict[str, str] = {}
     for path, content in changed_files.items():
-        blob = requests.post(
-            f"{api}/git/blobs", headers=headers, timeout=30,
+        blob = _call(
+            "POST", f"{api}/git/blobs", f"create blob for {path}",
+            partial={"blobs_created": blobs_created},
             json={"content": base64.b64encode(content.encode("utf-8")).decode("ascii"), "encoding": "base64"},
         )
-        blob.raise_for_status()
-        tree_entries.append({"path": path, "mode": "100644", "type": "blob", "sha": blob.json()["sha"]})
+        blob_sha = blob.json()["sha"]
+        blobs_created[path] = blob_sha
+        tree_entries.append({"path": path, "mode": "100644", "type": "blob", "sha": blob_sha})
 
-    tree = requests.post(
-        f"{api}/git/trees", headers=headers, timeout=30,
+    tree = _call(
+        "POST", f"{api}/git/trees", "create tree",
+        partial={"blobs_created": blobs_created},
         json={"base_tree": base_tree_sha, "tree": tree_entries},
     )
-    tree.raise_for_status()
 
-    commit = requests.post(
-        f"{api}/git/commits", headers=headers, timeout=30,
+    commit = _call(
+        "POST", f"{api}/git/commits", "create commit",
+        partial={"tree_sha": tree.json()["sha"], "blobs_created": blobs_created},
         json={"message": commit_message, "tree": tree.json()["sha"], "parents": [base_commit_sha]},
     )
-    commit.raise_for_status()
     new_commit_sha = commit.json()["sha"]
 
-    update_ref = requests.patch(
-        f"{api}/git/refs/heads/{branch}", headers=headers, timeout=30,
+    _call(
+        "PATCH", f"{api}/git/refs/heads/{branch}", f"update ref heads/{branch}",
+        partial={"commit_sha_created_but_not_pointed_to": new_commit_sha},
         json={"sha": new_commit_sha},
     )
-    update_ref.raise_for_status()
     return new_commit_sha

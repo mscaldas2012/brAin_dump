@@ -54,6 +54,13 @@ def record_audit(slug: str, content_hash: str, audit_name: str, result: dict[str
     state = load_state(slug)
     entry = _entry(state, content_hash)
     entry[audit_name] = result
+    if audit_name == "voice_check":
+        # voice-check is an LLM judgment call: re-running it for the same
+        # content hash can legitimately surface a different set of flags
+        # (e.g. a crash-and-retry before publish completed). A prior human
+        # acknowledgment was for the *previous* flag set, not this one, so
+        # it must not silently carry over — re-arm the escalation.
+        entry["drift_acknowledged"] = False
     save_state(slug, state)
 
 
