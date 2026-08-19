@@ -1,0 +1,11 @@
+[project]
+name = "publish-pipeline"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=0.123.0",
+    "claude-agent-sdk>=0.2.140",
+    "python-dotenv>=1.2.3",
+    "requests>=2.34.2",
+]

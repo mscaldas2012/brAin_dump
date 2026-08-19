@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+"""Blog publish pipeline CLI.
+
+load_draft -> run all three audits -> gate -> (escalate if needed) -> publish.
+
+The gate (gate.check_gate) is pure deterministic Python, called directly in
+this orchestrator's own control flow before publish.do_publish() is ever
+invoked — per .claude/rules/enforcement-vs-guidance.md's "hookless" pattern:
+since this script *is* the orchestrator (not an LLM deciding call order), the
+check belongs in real code here, not in a prompt. The audits themselves still
+use real LLM judgment (via audits.py, forced structured output) — only the
+pass/fail decision is deterministic.
+"""
+
+from __future__ import annotations
+
+import argparse
+import os
+import re
+import sys
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+HERE = Path(__file__).resolve().parent
+load_dotenv(HERE / ".env")
+
+import audits  # noqa: E402
+import gate  # noqa: E402
+import publish  # noqa: E402
+import report  # noqa: E402
+
+import json
+
+with open(HERE / "config.json", encoding="utf-8") as f:
+    CONFIG = json.load(f)
+
+INBOX = publish.BLOG_ROOT / "inbox"
+
+
+def _slug_for(source_path: Path) -> str:
+    return re.sub(r"^\d{8}-", "", source_path.stem)
+
+
+def _pick_draft(explicit: str | None) -> Path:
+    if explicit:
+        path = Path(explicit).resolve()
+        if not path.exists():
+            sys.exit(f"error: {path} does not exist")
+        return path
+    if not INBOX.exists():
+        sys.exit(f"error: no draft given and {INBOX} does not exist")
+    candidates = sorted(
+        (p for p in INBOX.iterdir() if p.is_file() and not p.name.startswith(".")),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    if not candidates:
+        sys.exit(f"error: no draft given and {INBOX} is empty")
+    return candidates[0]
+
+
+def run_audits(draft_text: str, slug: str) -> dict:
+    print("Running audits...")
+    content_hash = gate.compute_hash(draft_text)
+
+    print("  voice-check...")
+    voice_result = audits.run_voice_check(draft_text)
+    gate.record_audit(slug, content_hash, "voice_check", voice_result)
+    print(f"    score: {voice_result['score']}/10, {len(voice_result['anti_patterns'])} anti-pattern(s)")
+
+    print("  prose-linter...")
+    prose_result = audits.run_prose_lint(draft_text)
+    gate.record_audit(slug, content_hash, "prose_linter", prose_result)
+    print(
+        f"    {prose_result['total_flags']} flag(s), "
+        f"{prose_result['tier1_signature_words']} Tier-1 signature word(s)"
+    )
+
+    print("  rhythm-audit...")
+    rhythm_result = audits.run_rhythm_audit(draft_text)
+    gate.record_audit(slug, content_hash, "rhythm_audit", rhythm_result)
+    high = [f for f in rhythm_result.get("flags", []) if f.get("severity") == "high"]
+    print(f"    {len(rhythm_result.get('flags', []))} flag(s), {len(high)} high-severity")
+
+    return {"voice_check": voice_result, "prose_linter": prose_result, "rhythm_audit": rhythm_result}
+
+
+def handle_escalation(slug: str, draft_text: str, result: gate.GateResult) -> bool:
+    print("\n--- Voice drift needs a human call ---")
+    print(result.reason)
+    for flag in result.details.get("flags", []):
+        print(f"  [{flag['severity']}] {flag['category']}: \"{flag['quote']}\" — {flag['note']}")
+    answer = input("\nIs this drift intentional? [y/N] ").strip().lower()
+    if answer == "y":
+        gate.acknowledge_drift(slug, gate.compute_hash(draft_text))
+        return True
+    return False
+
+
+def do_publish(source_path: Path, draft_text: str, dry_run: bool) -> dict:
+    dest, year, month, slug = publish.derive_destination(source_path)
+
+    if source_path.suffix.lower() == ".html":
+        new_html = publish.ensure_beacon(draft_text)
+    else:
+        new_html = publish.ensure_beacon(publish.convert_markdown_to_html(draft_text))
+
+    existing_posts = publish.scan_posts()
+    previous = publish.find_previous_post(existing_posts, dest.name[:8])
+    new_html, updated_previous_html = publish.wire_navigation(new_html, year, month, dest.name, previous)
+
+    title, description = publish.extract_title_and_description(new_html)
+    new_post = publish.PostInfo(
+        path=dest, date_str=dest.name[:8], year=year, month=month,
+        filename=dest.name, title=title or slug, description=description,
+    )
+    all_posts = sorted([new_post, *existing_posts], key=lambda p: p.date_str, reverse=True)
+
+    index_path = publish.BLOG_ROOT / "index.html"
+    current_index_html = index_path.read_text(encoding="utf-8")
+    new_index_html = publish.build_index_html(current_index_html, all_posts)
+
+    changed_files = {new_post.rel_from_root: new_html, "index.html": new_index_html}
+    if previous is not None and updated_previous_html is not None:
+        changed_files[previous.rel_from_root] = updated_previous_html
+
+    if dry_run:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(new_html, encoding="utf-8")
+        index_path.write_text(new_index_html, encoding="utf-8")
+        if previous is not None and updated_previous_html is not None:
+            previous.path.write_text(updated_previous_html, encoding="utf-8")
+        return {"published": True, "path": str(new_post.rel_from_root), "dry_run": True}
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    commit_sha = publish.push_to_github(
+        changed_files, commit_message=f"Publish: {title}", branch=os.environ.get("GITHUB_BRANCH", "main")
+    )
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(new_html, encoding="utf-8")
+    index_path.write_text(new_index_html, encoding="utf-8")
+    if previous is not None and updated_previous_html is not None:
+        previous.path.write_text(updated_previous_html, encoding="utf-8")
+    source_path.unlink()
+
+    return {"published": True, "path": str(new_post.rel_from_root), "commit_sha": commit_sha}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Audit and publish a blog draft.")
+    parser.add_argument("draft", nargs="?", help="Path to the draft. Defaults to the newest file in /inbox.")
+    parser.add_argument("--dry-run", action="store_true", help="Skip the GitHub push; write output locally.")
+    args = parser.parse_args()
+
+    source_path = _pick_draft(args.draft)
+    slug = _slug_for(source_path)
+    draft_text = source_path.read_text(encoding="utf-8")
+
+    print(f"Draft: {source_path}")
+    print(f"Slug: {slug}\n")
+
+    audit_results = run_audits(draft_text, slug)
+
+    result = gate.check_gate(slug, draft_text, CONFIG)
+    escalation_record: dict | None = None
+
+    if result.status == "needs_escalation":
+        acknowledged = handle_escalation(slug, draft_text, result)
+        escalation_record = {"acknowledged": acknowledged}
+        if acknowledged:
+            result = gate.check_gate(slug, draft_text, CONFIG)
+        else:
+            outcome = {"published": False, "reason": "author declined to confirm flagged voice drift"}
+            print("\n" + report.render(slug, audit_results, result.status, result.reason, escalation_record, outcome))
+            sys.exit(1)
+
+    if not result.passed:
+        print(f"\nGate blocked: {result.reason}")
+        outcome = {"published": False, "reason": result.reason}
+        print("\n" + report.render(slug, audit_results, result.status, result.reason, escalation_record, outcome))
+        sys.exit(1)
+
+    print("\nGate passed. Publishing...")
+    outcome = do_publish(source_path, draft_text, args.dry_run)
+    print("\n" + report.render(slug, audit_results, result.status, result.reason, escalation_record, outcome))
+
+
+if __name__ == "__main__":
+    main()

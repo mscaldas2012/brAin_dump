@@ -1,0 +1,5 @@
+{
+  "voice_score_threshold": 6,
+  "prose_flag_threshold": 8,
+  "blocked_names": []
+}
